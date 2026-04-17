@@ -1,0 +1,14 @@
+# ─── Evaluation configuration ──────────────────────────────────
+# Inherits from default.yaml at runtime
+
+# Checkpoint to evaluate
+checkpoint_path: outputs/models/best_model.pth
+
+# Output directories
+metrics_dir: outputs/metrics
+figures_dir: outputs/figures
+
+# What to generate
+generate_confusion_matrix: true
+generate_roc_curves: true
+generate_f1_chart: true

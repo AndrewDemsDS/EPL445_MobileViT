@@ -1,0 +1,27 @@
+# ─── Demo / inference configuration ────────────────────────────
+# Inherits from default.yaml at runtime
+
+# Checkpoint
+checkpoint_path: outputs/models/best_model.pth
+
+# Input
+input_video: data/raw/sample_traffic.mp4
+frame_skip: 3           # process every Nth frame (1 = every frame)
+
+# Output
+output_video: outputs/predictions/annotated_output.mp4
+output_csv: outputs/predictions/frame_predictions.csv
+output_counts: outputs/predictions/class_counts.json
+
+# Sliding-window detection
+max_inference_dim: 640          # resize long side for faster processing
+window_sizes: [120, 180, 256]   # multi-scale patch sizes (pixels)
+stride_ratio: 0.5               # window stride = size * ratio
+
+# Filtering
+confidence_threshold: 0.70
+nms_iou_threshold: 0.3
+
+# Visualization
+show_class_label: true
+font_scale: 0.7
