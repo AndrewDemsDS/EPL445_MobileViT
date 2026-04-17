@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traffic-mobilevit"
+version = "0.1.0"
+description = "MobileViT-based traffic video classification for EPL445"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "Andreas Demosthenous"},
+    {name = "Marios Olymbios"},
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4.0"]
+
+[tool.setuptools.packages.find]
+include = ["src*"]

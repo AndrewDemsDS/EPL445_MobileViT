@@ -1,0 +1,26 @@
+# ─── Shared defaults ───────────────────────────────────────────
+project_name: traffic-mobilevit
+
+# Data
+data_root: data
+image_size: 256
+num_classes: 4
+class_names:
+  - car
+  - bus
+  - truck
+  - background
+
+# Model
+model_name: mobilevit_s   # timm model identifier
+pretrained: true
+
+# DataLoader
+batch_size: 16
+num_workers: 2
+
+# Reproducibility
+seed: 42
+
+# Device: auto | cuda | cpu
+device: auto
