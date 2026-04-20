@@ -61,11 +61,11 @@ def test_roc_auc_with_probabilities():
 
 def test_confusion_matrix_shape():
     """Confusion matrix should be num_classes × num_classes."""
-    y_true = np.array([0, 1, 2, 3, 4])
-    y_pred = np.array([0, 1, 2, 3, 4])
-    class_names = ["car", "motorcycle", "bus", "truck", "background"]
+    y_true = np.array([0, 1, 2, 3])
+    y_pred = np.array([0, 1, 2, 3])
+    class_names = ["car", "bus", "truck", "background"]
 
     metrics = compute_all_metrics(y_true, y_pred, class_names=class_names)
     cm = np.array(metrics["confusion_matrix"])
 
-    assert cm.shape == (5, 5)
+    assert cm.shape == (4, 4)

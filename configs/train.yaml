@@ -24,3 +24,9 @@ log_every_n_steps: 20
 
 # Fine-tuning strategy
 freeze_backbone_epochs: 3   # freeze backbone for first N epochs, then unfreeze
+
+# Loss
+use_class_weights: true     # inverse-frequency CE weights (small-crop filtering creates imbalance)
+
+# Early stopping / checkpoint selection
+monitor_metric: macro_f1    # 'accuracy' or 'macro_f1' — F1 is more robust to class imbalance

@@ -16,7 +16,7 @@ model_name: mobilevit_s   # timm model identifier
 pretrained: true
 
 # DataLoader
-batch_size: 16
+batch_size: 4          # lowered from 16 — Radeon 780M iGPU crashed compositor when backbone unfroze at batch=16
 num_workers: 2
 
 # Reproducibility

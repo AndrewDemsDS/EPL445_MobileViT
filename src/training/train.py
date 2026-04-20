@@ -86,7 +86,8 @@ def main() -> None:
     log_every = cfg.get("log_every_n_steps", 20)
     patience = cfg.get("early_stopping_patience", 5)
 
-    best_val_acc = 0.0
+    monitor = cfg.get("monitor_metric", "accuracy")  # 'accuracy' or 'macro_f1'
+    best_val_score = 0.0
     epochs_no_improve = 0
     history: list[dict[str, float]] = []
 
@@ -113,10 +114,11 @@ def main() -> None:
 
         current_lr = optimizer.param_groups[0]["lr"]
         logger.info(
-            "Epoch %d/%d — train_loss=%.4f  train_acc=%.4f  val_loss=%.4f  val_acc=%.4f  lr=%.6f",
+            "Epoch %d/%d — train_loss=%.4f train_acc=%.4f  "
+            "val_loss=%.4f val_acc=%.4f val_f1=%.4f  lr=%.6f",
             epoch, epochs,
             train_metrics["loss"], train_metrics["accuracy"],
-            val_metrics["loss"], val_metrics["accuracy"],
+            val_metrics["loss"], val_metrics["accuracy"], val_metrics["macro_f1"],
             current_lr,
         )
 
@@ -126,19 +128,21 @@ def main() -> None:
             "train_accuracy": train_metrics["accuracy"],
             "val_loss": val_metrics["loss"],
             "val_accuracy": val_metrics["accuracy"],
+            "val_macro_f1": val_metrics["macro_f1"],
             "lr": current_lr,
         })
 
-        # Checkpointing
-        if val_metrics["accuracy"] > best_val_acc:
-            best_val_acc = val_metrics["accuracy"]
+        # Checkpointing — select by configured monitor metric
+        current_score = val_metrics[monitor]
+        if current_score > best_val_score:
+            best_val_score = current_score
             epochs_no_improve = 0
             save_checkpoint(
                 model, optimizer, epoch,
                 {**val_metrics, "train_loss": train_metrics["loss"]},
                 ckpt_dir / "best_model.pth",
             )
-            logger.info("  ✓ New best val_acc=%.4f — checkpoint saved", best_val_acc)
+            logger.info("  ✓ New best val_%s=%.4f — checkpoint saved", monitor, best_val_score)
         else:
             epochs_no_improve += 1
             if epochs_no_improve >= patience:
@@ -152,7 +156,7 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(history)
     logger.info("Training history saved to %s", history_path)
-    logger.info("Best validation accuracy: %.4f", best_val_acc)
+    logger.info("Best validation %s: %.4f", monitor, best_val_score)
 
 
 if __name__ == "__main__":

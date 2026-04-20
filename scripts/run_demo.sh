@@ -2,6 +2,8 @@
 # Run video inference demo
 set -euo pipefail
 
+export HSA_OVERRIDE_GFX_VERSION=11.0.0
+
 echo "═══ MobileViT Traffic Demo — Video Inference ═══"
 python -m src.inference.predict_video --config configs/demo.yaml "$@"
 

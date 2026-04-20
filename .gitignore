@@ -22,9 +22,14 @@ env/
 data/raw/
 data/interim/
 data/processed/
+data/splits_original_leaky/
+data/splits_before_size_filter/
 outputs/models/*.pth
 outputs/models/*.pt
 outputs/predictions/
+
+# Editor backups
+*.bak
 
 # OS
 .DS_Store
