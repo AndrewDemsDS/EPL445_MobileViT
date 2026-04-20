@@ -15,7 +15,7 @@ Usage
 UA-DETRAC provides bounding box annotations with vehicle types:
   car, bus, van, others
 We map these to our target labels:
-  car, bus, truck (mapped from van+others), motorcycle (if present), background.
+  car, bus, truck (mapped from van+others), background.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ DETRAC_LABEL_MAP = {
     "others": "truck",    # misc heavy vehicles
 }
 
-TARGET_CLASSES = ["car", "motorcycle", "bus", "truck", "background"]
+TARGET_CLASSES = ["car", "bus", "truck", "background"]
 
 # ── Kaggle dataset ───────────────────────────────────────────────
 # The official UA-DETRAC server blocks direct downloads (403).

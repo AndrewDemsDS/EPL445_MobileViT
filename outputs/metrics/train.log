@@ -35,3 +35,63 @@
 2026-04-17 02:50:46 | INFO     | traffic_mobilevit |   ✓ New best val_acc=0.9663 — checkpoint saved
 2026-04-17 02:50:46 | INFO     | traffic_mobilevit | Training history saved to outputs/metrics/training_history.csv
 2026-04-17 02:50:46 | INFO     | traffic_mobilevit | Best validation accuracy: 0.9663
+2026-04-20 14:43:23 | INFO     | traffic_mobilevit | Config: {'project_name': 'traffic-mobilevit', 'data_root': 'data', 'image_size': 256, 'num_classes': 4, 'class_names': ['car', 'bus', 'truck', 'background'], 'model_name': 'mobilevit_s', 'pretrained': True, 'batch_size': 16, 'num_workers': 2, 'seed': 42, 'device': 'auto', 'optimizer': 'adamw', 'learning_rate': 0.0003, 'weight_decay': 0.0001, 'scheduler': 'cosine', 'warmup_epochs': 2, 'epochs': 15, 'early_stopping_patience': 5, 'checkpoint_dir': 'outputs/models', 'save_best_only': True, 'log_dir': 'outputs/metrics', 'log_every_n_steps': 20, 'freeze_backbone_epochs': 3, 'use_class_weights': True, 'monitor_metric': 'macro_f1'}
+2026-04-20 14:43:24 | INFO     | traffic_mobilevit | Device: cuda
+2026-04-20 14:43:24 | INFO     | traffic_mobilevit | Train batches: 426, Val batches: 58
+2026-04-20 14:43:24 | INFO     | traffic_mobilevit | Backbone frozen for first 3 epoch(s)
+2026-04-20 14:45:43 | INFO     | traffic_mobilevit | Epoch 1/15 — train_loss=1.0530 train_acc=0.6824  val_loss=0.9719 val_acc=0.6918 val_f1=0.6937  lr=0.000297
+2026-04-20 14:45:43 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.6937 — checkpoint saved
+2026-04-20 14:47:21 | INFO     | traffic_mobilevit | Epoch 2/15 — train_loss=0.7969 train_acc=0.7428  val_loss=0.8351 val_acc=0.7177 val_f1=0.7215  lr=0.000287
+2026-04-20 14:47:21 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.7215 — checkpoint saved
+2026-04-20 14:49:01 | INFO     | traffic_mobilevit | Epoch 3/15 — train_loss=0.7040 train_acc=0.7736  val_loss=0.7585 val_acc=0.7511 val_f1=0.7524  lr=0.000271
+2026-04-20 14:49:01 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.7524 — checkpoint saved
+2026-04-20 14:49:01 | INFO     | traffic_mobilevit | Backbone unfrozen at epoch 4 with reduced LR
+2026-04-20 14:56:12 | INFO     | traffic_mobilevit | Config: {'project_name': 'traffic-mobilevit', 'data_root': 'data', 'image_size': 256, 'num_classes': 4, 'class_names': ['car', 'bus', 'truck', 'background'], 'model_name': 'mobilevit_s', 'pretrained': True, 'batch_size': 4, 'num_workers': 2, 'seed': 42, 'device': 'auto', 'optimizer': 'adamw', 'learning_rate': 0.0003, 'weight_decay': 0.0001, 'scheduler': 'cosine', 'warmup_epochs': 2, 'epochs': 15, 'early_stopping_patience': 5, 'checkpoint_dir': 'outputs/models', 'save_best_only': True, 'log_dir': 'outputs/metrics', 'log_every_n_steps': 20, 'freeze_backbone_epochs': 3, 'use_class_weights': True, 'monitor_metric': 'macro_f1'}
+2026-04-20 14:56:13 | INFO     | traffic_mobilevit | Device: cuda
+2026-04-20 14:56:13 | INFO     | traffic_mobilevit | Train batches: 1706, Val batches: 232
+2026-04-20 14:56:13 | INFO     | traffic_mobilevit | Backbone frozen for first 3 epoch(s)
+2026-04-20 14:58:23 | INFO     | traffic_mobilevit | Epoch 1/15 — train_loss=1.0134 train_acc=0.6556  val_loss=0.8842 val_acc=0.6961 val_f1=0.6931  lr=0.000297
+2026-04-20 14:58:23 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.6931 — checkpoint saved
+2026-04-20 15:00:06 | INFO     | traffic_mobilevit | Epoch 2/15 — train_loss=0.8243 train_acc=0.7038  val_loss=0.8108 val_acc=0.6875 val_f1=0.6773  lr=0.000287
+2026-04-20 15:01:49 | INFO     | traffic_mobilevit | Epoch 3/15 — train_loss=0.7667 train_acc=0.7219  val_loss=0.7632 val_acc=0.7037 val_f1=0.6941  lr=0.000271
+2026-04-20 15:01:49 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.6941 — checkpoint saved
+2026-04-20 15:01:49 | INFO     | traffic_mobilevit | Backbone unfrozen at epoch 4 with reduced LR
+2026-04-20 15:07:48 | INFO     | traffic_mobilevit | Epoch 4/15 — train_loss=0.5336 train_acc=0.8158  val_loss=0.3620 val_acc=0.8545 val_f1=0.8406  lr=0.000029
+2026-04-20 15:07:48 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.8406 — checkpoint saved
+2026-04-20 15:14:52 | INFO     | traffic_mobilevit | Epoch 5/15 — train_loss=0.3599 train_acc=0.8854  val_loss=0.2915 val_acc=0.8869 val_f1=0.8798  lr=0.000028
+2026-04-20 15:14:52 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.8798 — checkpoint saved
+2026-04-20 15:20:29 | INFO     | traffic_mobilevit | Epoch 6/15 — train_loss=0.2764 train_acc=0.9146  val_loss=0.2446 val_acc=0.9009 val_f1=0.8979  lr=0.000026
+2026-04-20 15:20:29 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.8979 — checkpoint saved
+2026-04-20 15:24:54 | INFO     | traffic_mobilevit | Config: {'project_name': 'traffic-mobilevit', 'data_root': 'data', 'image_size': 256, 'num_classes': 4, 'class_names': ['car', 'bus', 'truck', 'background'], 'model_name': 'mobilevit_s', 'pretrained': True, 'batch_size': 4, 'num_workers': 2, 'seed': 42, 'device': 'auto', 'optimizer': 'adamw', 'learning_rate': 0.0003, 'weight_decay': 0.0001, 'scheduler': 'cosine', 'warmup_epochs': 2, 'epochs': 15, 'early_stopping_patience': 5, 'checkpoint_dir': 'outputs/models', 'save_best_only': True, 'log_dir': 'outputs/metrics', 'log_every_n_steps': 20, 'freeze_backbone_epochs': 3, 'use_class_weights': True, 'monitor_metric': 'macro_f1'}
+2026-04-20 15:24:56 | INFO     | traffic_mobilevit | Device: cuda
+2026-04-20 15:24:56 | INFO     | traffic_mobilevit | Train batches: 1706, Val batches: 232
+2026-04-20 15:24:57 | INFO     | traffic_mobilevit | Backbone frozen for first 3 epoch(s)
+2026-04-20 15:26:59 | INFO     | traffic_mobilevit | Epoch 1/15 — train_loss=1.0134 train_acc=0.6556  val_loss=0.8842 val_acc=0.6961 val_f1=0.6931  lr=0.000297
+2026-04-20 15:26:59 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.6931 — checkpoint saved
+2026-04-20 15:28:40 | INFO     | traffic_mobilevit | Epoch 2/15 — train_loss=0.8243 train_acc=0.7038  val_loss=0.8108 val_acc=0.6875 val_f1=0.6773  lr=0.000287
+2026-04-20 15:30:21 | INFO     | traffic_mobilevit | Epoch 3/15 — train_loss=0.7667 train_acc=0.7219  val_loss=0.7632 val_acc=0.7037 val_f1=0.6941  lr=0.000271
+2026-04-20 15:30:21 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.6941 — checkpoint saved
+2026-04-20 15:30:21 | INFO     | traffic_mobilevit | Backbone unfrozen at epoch 4 with reduced LR
+2026-04-20 15:36:06 | INFO     | traffic_mobilevit | Epoch 4/15 — train_loss=0.5336 train_acc=0.8158  val_loss=0.3620 val_acc=0.8545 val_f1=0.8406  lr=0.000029
+2026-04-20 15:36:06 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.8406 — checkpoint saved
+2026-04-20 15:41:49 | INFO     | traffic_mobilevit | Epoch 5/15 — train_loss=0.3599 train_acc=0.8854  val_loss=0.2915 val_acc=0.8869 val_f1=0.8798  lr=0.000028
+2026-04-20 15:41:49 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.8798 — checkpoint saved
+2026-04-20 15:47:32 | INFO     | traffic_mobilevit | Epoch 6/15 — train_loss=0.2764 train_acc=0.9146  val_loss=0.2446 val_acc=0.9009 val_f1=0.8979  lr=0.000026
+2026-04-20 15:47:32 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.8979 — checkpoint saved
+2026-04-20 15:53:15 | INFO     | traffic_mobilevit | Epoch 7/15 — train_loss=0.2255 train_acc=0.9364  val_loss=0.2121 val_acc=0.9267 val_f1=0.9271  lr=0.000023
+2026-04-20 15:53:15 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.9271 — checkpoint saved
+2026-04-20 15:58:58 | INFO     | traffic_mobilevit | Epoch 8/15 — train_loss=0.1776 train_acc=0.9489  val_loss=0.2096 val_acc=0.9343 val_f1=0.9309  lr=0.000019
+2026-04-20 15:58:58 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.9309 — checkpoint saved
+2026-04-20 16:04:41 | INFO     | traffic_mobilevit | Epoch 9/15 — train_loss=0.1558 train_acc=0.9587  val_loss=0.2267 val_acc=0.9321 val_f1=0.9314  lr=0.000015
+2026-04-20 16:04:41 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.9314 — checkpoint saved
+2026-04-20 16:10:24 | INFO     | traffic_mobilevit | Epoch 10/15 — train_loss=0.1360 train_acc=0.9640  val_loss=0.2151 val_acc=0.9300 val_f1=0.9269  lr=0.000011
+2026-04-20 16:16:06 | INFO     | traffic_mobilevit | Epoch 11/15 — train_loss=0.1138 train_acc=0.9689  val_loss=0.2161 val_acc=0.9332 val_f1=0.9330  lr=0.000008
+2026-04-20 16:16:07 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.9330 — checkpoint saved
+2026-04-20 16:21:49 | INFO     | traffic_mobilevit | Epoch 12/15 — train_loss=0.1045 train_acc=0.9736  val_loss=0.1946 val_acc=0.9386 val_f1=0.9399  lr=0.000004
+2026-04-20 16:21:49 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.9399 — checkpoint saved
+2026-04-20 16:27:32 | INFO     | traffic_mobilevit | Epoch 13/15 — train_loss=0.0944 train_acc=0.9761  val_loss=0.1840 val_acc=0.9407 val_f1=0.9404  lr=0.000002
+2026-04-20 16:27:32 | INFO     | traffic_mobilevit |   ✓ New best val_macro_f1=0.9404 — checkpoint saved
+2026-04-20 16:33:15 | INFO     | traffic_mobilevit | Epoch 14/15 — train_loss=0.0952 train_acc=0.9754  val_loss=0.1907 val_acc=0.9397 val_f1=0.9374  lr=0.000001
+2026-04-20 16:38:57 | INFO     | traffic_mobilevit | Epoch 15/15 — train_loss=0.0914 train_acc=0.9757  val_loss=0.2083 val_acc=0.9364 val_f1=0.9348  lr=0.000000
+2026-04-20 16:38:57 | INFO     | traffic_mobilevit | Training history saved to outputs/metrics/training_history.csv
+2026-04-20 16:38:57 | INFO     | traffic_mobilevit | Best validation macro_f1: 0.9404

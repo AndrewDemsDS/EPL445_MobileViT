@@ -19,7 +19,6 @@ This project implements a **frame-level traffic classification** system using a
 | Class        | Description               |
 |-------------|---------------------------|
 | `car`        | Passenger cars             |
-| `motorcycle` | Motorcycles / two-wheelers |
 | `bus`        | Buses                      |
 | `truck`      | Trucks, vans, heavy vehicles |
 | `background` | Non-vehicle patches        |
