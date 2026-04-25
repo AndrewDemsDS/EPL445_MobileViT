@@ -37,3 +37,10 @@ Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Playwright test artifacts
+.playwright-mcp/
+dashboard-*.png
+
+# Job run outputs
+outputs/jobs/
