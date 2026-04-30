@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MobileViT Traffic Dashboard — EPL445</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <!-- Chart.js via CDN — no build step required -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>MobileViT Traffic Dashboard</h1>
+      <span class="subtitle">EPL445 · University of Cyprus · Spring 2026</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── Upload Panel ──────────────────────────────── -->
+    <section id="upload-section" class="card">
+      <h2>1. Upload Traffic Video</h2>
+      <div class="drop-zone" id="drop-zone">
+        <span id="drop-label">Drag &amp; drop an MP4 here, or <label for="file-input" class="browse-link">browse</label></span>
+        <input type="file" id="file-input" accept="video/mp4,video/avi,video/quicktime,video/x-matroska" hidden />
+        <span id="file-name" class="file-name"></span>
+      </div>
+      <div class="upload-row">
+        <button id="run-btn" disabled>▶ Run Inference</button>
+        <span id="upload-status" class="status-text"></span>
+      </div>
+    </section>
+
+    <!-- ── Progress ──────────────────────────────────── -->
+    <section id="progress-section" class="card hidden">
+      <h2>2. Processing</h2>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <p id="progress-label">0%</p>
+    </section>
+
+    <!-- ── Results ───────────────────────────────────── -->
+    <section id="results-section" class="card hidden">
+      <h2>3. Results</h2>
+
+      <!-- Summary pills -->
+      <div id="summary-pills" class="pills-row"></div>
+
+      <div class="results-grid">
+        <!-- Annotated video -->
+        <div class="result-block">
+          <h3>Annotated Video</h3>
+          <video id="result-video" controls></video>
+        </div>
+
+        <!-- Per-class bar chart -->
+        <div class="result-block">
+          <h3>Detections per Class</h3>
+          <canvas id="counts-chart"></canvas>
+        </div>
+
+        <!-- Density timeline -->
+        <div class="result-block full-width">
+          <h3>Vehicle Density Over Time</h3>
+          <canvas id="timeline-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ROI Selection ──────────────────────────────── -->
+    <section id="roi-section" class="card hidden">
+      <h2>4. Region of Interest (ROI)</h2>
+      <p class="hint">Click and drag on the frame below to define a region. Counts will be recomputed for that area only.</p>
+      <div class="canvas-wrap">
+        <canvas id="roi-canvas"></canvas>
+      </div>
+      <div class="roi-controls">
+        <button id="apply-roi-btn">Apply ROI</button>
+        <button id="clear-roi-btn">Clear ROI</button>
+        <span id="roi-status" class="status-text"></span>
+      </div>
+      <div id="roi-results" class="pills-row"></div>
+    </section>
+
+    <!-- ── Past Jobs ──────────────────────────────────── -->
+    <section id="jobs-section" class="card">
+      <h2>Past Jobs</h2>
+      <button id="refresh-jobs-btn" class="secondary">↻ Refresh</button>
+      <table id="jobs-table">
+        <thead>
+          <tr><th>Job ID</th><th>Status</th><th>Progress</th><th>Created</th><th></th></tr>
+        </thead>
+        <tbody id="jobs-body"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
