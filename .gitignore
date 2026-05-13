@@ -26,6 +26,7 @@ data/splits_original_leaky/
 data/splits_before_size_filter/
 outputs/models/*.pth
 outputs/models/*.pt
+!outputs/models/best_model.pth
 outputs/predictions/
 
 # Editor backups
