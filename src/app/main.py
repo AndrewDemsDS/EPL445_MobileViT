@@ -166,6 +166,18 @@ def dev_seed():
         shutil.copy(src_csv, job.predictions_csv)
     if src_counts.exists():
         shutil.copy(src_counts, job.counts_json)
+        # Augment with synthetic tracking counts so the unique-vehicles pill renders.
+        # Real tracking runs populate these via aggregate_counts; this is dev-only.
+        try:
+            data = json.loads(job.counts_json.read_text())
+            if "unique_vehicles_by_class" not in data and "class_counts" in data:
+                # Estimate unique ~= one-third of detections (heuristic for demo).
+                cc = data["class_counts"]
+                data["unique_vehicles_by_class"] = {k: max(1, round(v / 3)) for k, v in cc.items()}
+                data["unique_vehicles_total"] = sum(data["unique_vehicles_by_class"].values())
+                job.counts_json.write_text(json.dumps(data, indent=2))
+        except Exception:
+            pass
 
     job.status = JobStatus.DONE
     job.progress = 100

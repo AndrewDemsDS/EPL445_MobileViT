@@ -161,6 +161,8 @@ button.small { padding: 0.25rem 0.7rem; font-size: 0.8rem; }
 .pill-car    { border-color: var(--green);  color: var(--green); }
 .pill-bus    { border-color: var(--orange); color: var(--orange); }
 .pill-truck  { border-color: var(--blue);   color: var(--blue); }
+.pill-unique { border-color: var(--accent); color: var(--accent); }
+.pill em     { font-style: normal; opacity: 0.65; font-size: 0.78em; }
 
 /* ── ROI canvas ──────────────────────────────────────────────── */
 .canvas-wrap {

@@ -152,14 +152,20 @@ function renderPills(container, counts) {
   const total = counts.total_detections || 0;
   const dominant = counts.dominant_class || '—';
   const density = (counts.density_estimate * 100).toFixed(1);
+  const unique = counts.unique_vehicles_total;
+  const uniqueByClass = counts.unique_vehicles_by_class || {};
 
   container.innerHTML = `
     <div class="pill">Total detections <strong>${total}</strong></div>
+    ${unique !== undefined
+      ? `<div class="pill pill-unique">Unique vehicles <strong>${unique}</strong></div>` : ''}
     <div class="pill">Dominant class <strong>${dominant}</strong></div>
     <div class="pill">Traffic density <strong>${density}%</strong></div>
-    ${Object.entries(cc).map(([cls, n]) =>
-      `<div class="pill pill-${cls}">${cls} <strong>${n}</strong></div>`
-    ).join('')}
+    ${Object.entries(cc).map(([cls, n]) => {
+      const u = uniqueByClass[cls];
+      const tail = (u !== undefined) ? ` <em>(${u} unique)</em>` : '';
+      return `<div class="pill pill-${cls}">${cls} <strong>${n}</strong>${tail}</div>`;
+    }).join('')}
   `;
 }
 
