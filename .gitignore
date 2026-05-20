@@ -45,3 +45,12 @@ dashboard-*.png
 
 # Job run outputs
 outputs/jobs/
+
+# Local-only assistant context (never commit)
+CLAUDE.md
+.claude/
+.cursor/
+.cursorrules
+.github/copilot-instructions.md
+.aider*
+.roo*
