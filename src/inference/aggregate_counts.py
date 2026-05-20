@@ -71,6 +71,19 @@ def aggregate_predictions(
         "density_estimate": density,
     }
 
+    # If tracking ran, also report unique vehicles per class (one row per track_id)
+    if "track_id" in df.columns and len(vehicles) > 0:
+        tracked = vehicles[vehicles["track_id"].notna() & (vehicles["track_id"].astype(str) != "")]
+        if len(tracked) > 0:
+            unique = (
+                tracked.drop_duplicates(subset=["track_id", "class_name"])
+                .groupby("class_name")
+                .size()
+                .to_dict()
+            )
+            result["unique_vehicles_by_class"] = unique
+            result["unique_vehicles_total"] = int(sum(unique.values()))
+
     if output_path:
         save_json(result, output_path)
 

@@ -200,9 +200,21 @@ def run_video_inference(cfg: dict) -> None:
     csv_file = open(output_csv, "w", newline="")
     csv_writer = csv.DictWriter(
         csv_file,
-        fieldnames=["frame_idx", "class_name", "confidence", "x", "y", "w", "h"],
+        fieldnames=["frame_idx", "track_id", "class_name", "confidence", "x", "y", "w", "h"],
     )
     csv_writer.writeheader()
+
+    # ── Optional SORT tracker ────────────────────────────────────
+    tracker = None
+    if cfg.get("enable_tracking", False):
+        from src.inference.tracker import SORTTracker
+        tracker = SORTTracker(
+            max_age=cfg.get("track_max_age", 5),
+            min_hits=cfg.get("track_min_hits", 2),
+            iou_threshold=cfg.get("track_iou_threshold", 0.3),
+        )
+        logger.info("SORT tracker enabled (max_age=%d, min_hits=%d)",
+                    tracker.max_age, tracker.min_hits)
 
     # ── Process frames ───────────────────────────────────────────
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -240,17 +252,42 @@ def run_video_inference(cfg: dict) -> None:
             detections = _nms_boxes(detections, iou_threshold)
             total_detections += len(detections)
 
-            # Draw detections on original-resolution frame
+            # Project detections to original resolution and (optionally) track
             inv_scale = 1.0 / scale if scale < 1.0 else 1.0
+            projected: list[tuple[int, int, int, int, str, float]] = []
             for det in detections:
                 x1 = int(det["x"] * inv_scale)
                 y1 = int(det["y"] * inv_scale)
                 x2 = int((det["x"] + det["w"]) * inv_scale)
                 y2 = int((det["y"] + det["h"]) * inv_scale)
-                color = CLASS_COLORS.get(det["class_name"], (0, 255, 0))
+                projected.append((x1, y1, x2, y2, det["class_name"], det["confidence"]))
 
+            # SORT tracker (optional). It needs to be called every analysed frame
+            # so trackers can age out even on frames with no detections.
+            if tracker is not None:
+                track_in = [[x1, y1, x2, y2, cls] for (x1, y1, x2, y2, cls, _) in projected]
+                tracked = tracker.update(track_in)
+                # Match tracked outputs back to projected detections by IoU to recover confidence
+                draw_items: list[tuple[int, int, int, int, str, float, int | None]] = []
+                for (tx1, ty1, tx2, ty2, tid, tlabel) in tracked:
+                    best_conf = 0.0
+                    for (px1, py1, px2, py2, pcls, pconf) in projected:
+                        if pcls != tlabel:
+                            continue
+                        ix1, iy1 = max(tx1, px1), max(ty1, py1)
+                        ix2, iy2 = min(tx2, px2), min(ty2, py2)
+                        inter = max(0, ix2 - ix1) * max(0, iy2 - iy1)
+                        if inter > 0 and pconf > best_conf:
+                            best_conf = pconf
+                    draw_items.append((tx1, ty1, tx2, ty2, tlabel, best_conf or 1.0, tid))
+            else:
+                draw_items = [(x1, y1, x2, y2, cls, conf, None) for (x1, y1, x2, y2, cls, conf) in projected]
+
+            # Draw + log
+            for (x1, y1, x2, y2, cls, conf, tid) in draw_items:
+                color = CLASS_COLORS.get(cls, (0, 255, 0))
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
-                label = f"{det['class_name']} {det['confidence']:.2f}"
+                label = f"#{tid} {cls} {conf:.2f}" if tid is not None else f"{cls} {conf:.2f}"
                 (tw, th), _ = cv2.getTextSize(label, font, font_scale, thickness)
                 cv2.rectangle(frame, (x1, y1 - th - 8), (x1 + tw + 4, y1), color, -1)
                 cv2.putText(frame, label, (x1 + 2, y1 - 4),
@@ -258,27 +295,30 @@ def run_video_inference(cfg: dict) -> None:
 
                 csv_writer.writerow({
                     "frame_idx": frame_idx,
-                    "class_name": det["class_name"],
-                    "confidence": f"{det['confidence']:.4f}",
+                    "track_id": tid if tid is not None else "",
+                    "class_name": cls,
+                    "confidence": f"{conf:.4f}",
                     "x": x1, "y": y1,
-                    "w": int(det["w"] * inv_scale),
-                    "h": int(det["h"] * inv_scale),
+                    "w": x2 - x1,
+                    "h": y2 - y1,
                 })
 
-            # If no vehicle detected, still note it
-            if not detections:
+            # If no detection drawn, still note this frame
+            if not draw_items:
                 csv_writer.writerow({
                     "frame_idx": frame_idx,
+                    "track_id": "",
                     "class_name": "background",
                     "confidence": "1.0000",
                     "x": 0, "y": 0, "w": 0, "h": 0,
                 })
 
             # HUD overlay: frame count and detection summary
-            counts = {}
-            for d in detections:
-                counts[d["class_name"]] = counts.get(d["class_name"], 0) + 1
-            hud = f"Frame {frame_idx} | Detections: {len(detections)}"
+            counts: dict[str, int] = {}
+            for (_x1, _y1, _x2, _y2, cls, _conf, _tid) in draw_items:
+                counts[cls] = counts.get(cls, 0) + 1
+            kind = "Tracked" if tracker is not None else "Detections"
+            hud = f"Frame {frame_idx} | {kind}: {len(draw_items)}"
             if counts:
                 hud += " | " + ", ".join(f"{k}: {v}" for k, v in sorted(counts.items()))
             cv2.putText(frame, hud, (10, orig_h - 15),
