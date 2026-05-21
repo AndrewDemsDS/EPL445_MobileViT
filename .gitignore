@@ -54,3 +54,7 @@ CLAUDE.md
 .github/copilot-instructions.md
 .aider*
 .roo*
+
+# Auto-downloaded model weights
+yolov8n.pt
+yolov8*.pt

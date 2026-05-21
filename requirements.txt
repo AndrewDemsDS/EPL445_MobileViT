@@ -26,5 +26,8 @@ python-multipart>=0.0.6
 # Tracking
 filterpy>=1.4.5
 
+# Detection (YOLOv8n proposals for the hybrid pipeline)
+ultralytics>=8.1.0
+
 # Testing
 pytest>=7.4.0

@@ -13,7 +13,12 @@ output_video: outputs/predictions/annotated_output.mp4
 output_csv: outputs/predictions/frame_predictions.csv
 output_counts: outputs/predictions/class_counts.json
 
-# Sliding-window detection
+# Detection backend: "yolo" (recommended) or "sliding"
+detector: yolo
+yolo_weights: yolov8n.pt        # COCO-pretrained, ~6 MB, auto-downloaded
+yolo_conf: 0.25                 # YOLO box-confidence threshold
+
+# Sliding-window detection (used when detector: sliding)
 max_inference_dim: 640          # resize long side for faster processing
 window_sizes: [120, 180, 256]   # multi-scale patch sizes (pixels)
 stride_ratio: 0.5               # window stride = size * ratio

@@ -102,6 +102,37 @@ def _iou(a: dict, b: dict) -> float:
     return inter / union if union > 0 else 0.0
 
 
+# COCO classes from YOLOv8 that correspond to our vehicle taxonomy.
+# We keep the YOLO box but re-classify the crop with MobileViT.
+_YOLO_VEHICLE_CLASSES = {2, 3, 5, 7}  # car, motorcycle, bus, truck
+
+
+def _yolo_proposals(
+    frame_rgb: np.ndarray,
+    yolo_model,
+    conf_threshold: float = 0.25,
+) -> list[tuple[int, int, int, int]]:
+    """Return (x, y, w, h) candidate boxes from YOLOv8 filtered to vehicles."""
+    res = yolo_model(frame_rgb, conf=conf_threshold, verbose=False)[0]
+    if res.boxes is None or len(res.boxes) == 0:
+        return []
+    boxes_xyxy = res.boxes.xyxy.cpu().numpy()
+    classes = res.boxes.cls.cpu().numpy().astype(int)
+    out: list[tuple[int, int, int, int]] = []
+    h_img, w_img = frame_rgb.shape[:2]
+    for (x1, y1, x2, y2), cls in zip(boxes_xyxy, classes):
+        if cls not in _YOLO_VEHICLE_CLASSES:
+            continue
+        x = max(0, int(x1))
+        y = max(0, int(y1))
+        w = min(w_img - x, int(x2 - x1))
+        h = min(h_img - y, int(y2 - y1))
+        if w < 16 or h < 16:
+            continue
+        out.append((x, y, w, h))
+    return out
+
+
 @torch.no_grad()
 def _classify_patches_batch(
     frame_rgb: np.ndarray,
@@ -187,6 +218,19 @@ def run_video_inference(cfg: dict) -> None:
     conf_threshold = cfg.get("confidence_threshold", 0.5)
     iou_threshold = cfg.get("nms_iou_threshold", 0.3)
 
+    # Detection backend: "sliding" (multi-scale window) or "yolo" (YOLOv8n)
+    detector = cfg.get("detector", "sliding").lower()
+    yolo_model = None
+    if detector == "yolo":
+        from ultralytics import YOLO
+        yolo_weights = cfg.get("yolo_weights", "yolov8n.pt")
+        yolo_model = YOLO(yolo_weights)
+        # Force CPU/GPU placement to match MobileViT device
+        yolo_model.to(str(device))
+        logger.info("YOLO detector enabled (weights=%s)", yolo_weights)
+    else:
+        logger.info("Sliding-window detector enabled (sizes=%s)", win_sizes)
+
     # Output video (original resolution with annotations)
     output_video = cfg.get("output_video", "outputs/predictions/annotated_output.mp4")
     ensure_dir(Path(output_video).parent)
@@ -239,17 +283,22 @@ def run_video_inference(cfg: dict) -> None:
 
             proc_rgb = cv2.cvtColor(proc_frame, cv2.COLOR_BGR2RGB)
 
-            # Generate sliding windows
-            windows = _sliding_windows(proc_h, proc_w, win_sizes, stride_ratio)
+            # Candidate windows: YOLO proposals or multi-scale sliding window
+            if detector == "yolo":
+                windows = _yolo_proposals(proc_rgb, yolo_model,
+                                          conf_threshold=cfg.get("yolo_conf", 0.25))
+            else:
+                windows = _sliding_windows(proc_h, proc_w, win_sizes, stride_ratio)
 
-            # Classify all patches
+            # Classify all patches with MobileViT
             detections = _classify_patches_batch(
                 proc_rgb, windows, model, transform, device,
                 class_names, conf_threshold,
             )
 
-            # Non-max suppression
-            detections = _nms_boxes(detections, iou_threshold)
+            # NMS only matters for sliding window (YOLO already applied its own).
+            if detector != "yolo":
+                detections = _nms_boxes(detections, iou_threshold)
             total_detections += len(detections)
 
             # Project detections to original resolution and (optionally) track
