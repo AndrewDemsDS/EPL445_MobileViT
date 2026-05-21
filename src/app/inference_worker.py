@@ -27,6 +27,30 @@ def _progress_callback(job: Job, processed: int, total: int) -> None:
     job.progress = int(processed / max(total, 1) * 100)
 
 
+def _encode_for_web(mp4_path: Path) -> None:
+    """Produce a sibling H.264 MP4 (web_<name>.mp4) browsers can play.
+
+    OpenCV's default mp4v codec is not in Chrome's allowed list, so the
+    dashboard's <video> tag fails with a DEMUXER_ERROR_NO_SUPPORTED_STREAMS.
+    """
+    import shutil
+    import subprocess
+
+    if not mp4_path.exists() or not shutil.which("ffmpeg"):
+        return
+    web_path = mp4_path.with_name("web_" + mp4_path.name)
+    if web_path.exists():
+        return
+    subprocess.run(
+        ["ffmpeg", "-loglevel", "error", "-y",
+         "-i", str(mp4_path),
+         "-vcodec", "libx264", "-pix_fmt", "yuv420p",
+         "-movflags", "+faststart",
+         str(web_path)],
+        check=False,
+    )
+
+
 def run_inference_job(job_id: str) -> None:
     """Entry point for BackgroundTasks — runs full inference pipeline for job."""
     job = store.get(job_id)
@@ -47,6 +71,9 @@ def run_inference_job(job_id: str) -> None:
 
         # Aggregate counts from CSV
         aggregate_predictions(job.predictions_csv, job.counts_json)
+
+        # Pre-encode to H.264 so the browser <video> plays without a 30s wait
+        _encode_for_web(job.output_video)
 
         job.status = JobStatus.DONE
         job.progress = 100

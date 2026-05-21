@@ -83,6 +83,27 @@
       <div id="roi-results" class="pills-row"></div>
     </section>
 
+    <!-- ── Lane counting (polygon ROI) ────────────────── -->
+    <section id="lanes-section" class="card hidden">
+      <h2>5. Per-lane Counting</h2>
+      <p class="hint">
+        Click to add vertices to the current lane.
+        Press <kbd>Enter</kbd> or use <strong>Finish lane</strong> to close it,
+        then start the next lane. Counts are computed from detection centres falling inside each polygon.
+      </p>
+      <div class="canvas-wrap">
+        <canvas id="lanes-canvas"></canvas>
+      </div>
+      <div class="roi-controls">
+        <input id="lane-name-input" placeholder="lane name" value="lane_1" />
+        <button id="finish-lane-btn" class="secondary">Finish lane</button>
+        <button id="apply-lanes-btn">Apply lanes</button>
+        <button id="clear-lanes-btn" class="secondary">Clear all</button>
+        <span id="lanes-status" class="status-text"></span>
+      </div>
+      <div id="lanes-results"></div>
+    </section>
+
     <!-- ── Past Jobs ──────────────────────────────────── -->
     <section id="jobs-section" class="card">
       <h2>Past Jobs</h2>

@@ -164,6 +164,43 @@ button.small { padding: 0.25rem 0.7rem; font-size: 0.8rem; }
 .pill-unique { border-color: var(--accent); color: var(--accent); }
 .pill em     { font-style: normal; opacity: 0.65; font-size: 0.78em; }
 
+/* Lane rows */
+.lane-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.lane-row:last-child { border-bottom: none; }
+.lane-chip {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+  background: var(--lane-color);
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+#lane-name-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  width: 9rem;
+}
+kbd {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+}
+
 /* ── ROI canvas ──────────────────────────────────────────────── */
 .canvas-wrap {
   border: 1px solid var(--border);

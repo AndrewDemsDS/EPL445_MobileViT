@@ -29,7 +29,8 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from src.app.analytics import density_timeline, roi_counts
+from src.app.analytics import density_timeline, lane_counts, roi_counts
+from fastapi import Body
 from src.app.inference_worker import run_inference_job
 from src.app.jobs import store
 from src.app import rtsp as rtsp_module
@@ -107,6 +108,31 @@ def apply_roi(job_id: str, x: int, y: int, w: int, h: int):
     return roi_counts(job.predictions_csv, x, y, w, h)
 
 
+@app.post("/jobs/{job_id}/lanes")
+def apply_lanes(
+    job_id: str,
+    lanes: dict[str, list[list[int]]] = Body(
+        ...,
+        examples=[{
+            "lane_1": [[0, 300], [320, 300], [320, 600], [0, 600]],
+            "lane_2": [[320, 300], [640, 300], [640, 600], [320, 600]],
+        }],
+    ),
+):
+    """Per-lane per-class counts using polygon ROIs (no re-inference)."""
+    job = store.get(job_id)
+    if job is None:
+        raise HTTPException(404, "Job not found")
+    if not job.predictions_csv.exists():
+        raise HTTPException(404, "Results not ready yet")
+    if not lanes:
+        raise HTTPException(400, "At least one lane polygon is required")
+    for name, points in lanes.items():
+        if len(points) < 3:
+            raise HTTPException(400, f"Lane '{name}' needs at least 3 vertices")
+    return lane_counts(job.predictions_csv, lanes)
+
+
 @app.get("/jobs/{job_id}/video")
 def get_video(job_id: str):
     job = store.get(job_id)
@@ -114,8 +140,25 @@ def get_video(job_id: str):
         raise HTTPException(404, "Job not found")
     if not job.output_video.exists():
         raise HTTPException(404, "Video not ready yet")
+
+    # OpenCV writes mp4v which most browsers cannot decode. Lazily re-encode
+    # to H.264 with ffmpeg the first time the endpoint is hit.
+    web_video = job.output_video.with_name("web_" + job.output_video.name)
+    if not web_video.exists():
+        import shutil, subprocess
+        if shutil.which("ffmpeg"):
+            subprocess.run(
+                ["ffmpeg", "-loglevel", "error", "-y",
+                 "-i", str(job.output_video),
+                 "-vcodec", "libx264", "-pix_fmt", "yuv420p",
+                 "-movflags", "+faststart",
+                 str(web_video)],
+                check=False,
+            )
+
+    target = web_video if web_video.exists() else job.output_video
     return FileResponse(
-        str(job.output_video),
+        str(target),
         media_type="video/mp4",
         headers={"Accept-Ranges": "bytes"},
     )
@@ -162,6 +205,10 @@ def dev_seed():
         shutil.copy(src_input, job.input_video)
     if src_video.exists():
         shutil.copy(src_video, job.output_video)
+    # Re-use the H.264-encoded web copy if already produced (e.g. by the notebook)
+    src_web_video = Path("outputs/predictions/web_annotated_output.mp4")
+    if src_web_video.exists():
+        shutil.copy(src_web_video, job.output_video.with_name("web_" + job.output_video.name))
     if src_csv.exists():
         shutil.copy(src_csv, job.predictions_csv)
     if src_counts.exists():

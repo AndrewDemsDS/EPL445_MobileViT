@@ -35,7 +35,17 @@ const timelineCanvas= document.getElementById('timeline-chart');
 const roiCanvas     = document.getElementById('roi-canvas');
 const roiStatus     = document.getElementById('roi-status');
 const roiResults    = document.getElementById('roi-results');
+const lanesSec      = document.getElementById('lanes-section');
+const lanesCanvas   = document.getElementById('lanes-canvas');
+const lanesStatus   = document.getElementById('lanes-status');
+const lanesResults  = document.getElementById('lanes-results');
+const laneNameInput = document.getElementById('lane-name-input');
 const jobsBody      = document.getElementById('jobs-body');
+
+// Lane drawing state
+const LANE_PALETTE = ['#22c55e', '#f97316', '#3b82f6', '#a855f7', '#f43f5e', '#06b6d4'];
+let lanes = {};                 // { lane_name: [[x,y], ...] (closed) }
+let currentLaneVerts = [];      // vertices of in-progress lane
 
 // ── File drop & select ───────────────────────────────────────────
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
@@ -143,6 +153,10 @@ async function loadResults(jobId) {
   // Load ROI frame
   await loadRoiFrame(jobId);
   show(roiSec);
+
+  // Lanes section uses the same first frame
+  await loadLanesFrame(jobId);
+  show(lanesSec);
 
   loadJobs();
 }
@@ -338,6 +352,169 @@ async function loadJobResults(jobId) {
 // ── Helpers ──────────────────────────────────────────────────────
 function show(el) { el.classList.remove('hidden'); }
 function hide(el) { el.classList.add('hidden'); }
+
+// ── Lane drawing ──────────────────────────────────────────────────
+let lanesImage = null;
+
+async function loadLanesFrame(jobId) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      lanesImage = img;
+      lanesCanvas.width  = img.naturalWidth;
+      lanesCanvas.height = img.naturalHeight;
+      lanesCanvas.style.maxWidth = '100%';
+      lanes = {};
+      currentLaneVerts = [];
+      laneNameInput.value = 'lane_1';
+      lanesStatus.textContent = '';
+      lanesResults.innerHTML = '';
+      drawLanes();
+      resolve();
+    };
+    img.onerror = resolve;
+    img.src = `/jobs/${jobId}/frame?t=${Date.now()}`;
+  });
+}
+
+function drawLanes() {
+  if (!lanesImage) return;
+  const ctx = lanesCanvas.getContext('2d');
+  ctx.drawImage(lanesImage, 0, 0);
+
+  // Closed lanes
+  Object.entries(lanes).forEach(([name, verts], idx) => {
+    const color = LANE_PALETTE[idx % LANE_PALETTE.length];
+    drawPolygon(ctx, verts, color, true);
+    const cx = verts.reduce((s, [x]) => s + x, 0) / verts.length;
+    const cy = verts.reduce((s, [, y]) => s + y, 0) / verts.length;
+    ctx.fillStyle = color;
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText(name, cx, cy);
+  });
+
+  // In-progress lane
+  if (currentLaneVerts.length > 0) {
+    const color = LANE_PALETTE[Object.keys(lanes).length % LANE_PALETTE.length];
+    drawPolygon(ctx, currentLaneVerts, color, false);
+    currentLaneVerts.forEach(([x, y]) => {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+}
+
+function drawPolygon(ctx, verts, color, closed) {
+  if (verts.length === 0) return;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.setLineDash(closed ? [] : [6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(verts[0][0], verts[0][1]);
+  verts.slice(1).forEach(([x, y]) => ctx.lineTo(x, y));
+  if (closed) ctx.closePath();
+  ctx.stroke();
+  if (closed) {
+    ctx.fillStyle = color + '22';
+    ctx.fill();
+  }
+  ctx.setLineDash([]);
+}
+
+function lanesCanvasPos(e) {
+  const rect = lanesCanvas.getBoundingClientRect();
+  const sx = lanesCanvas.width  / rect.width;
+  const sy = lanesCanvas.height / rect.height;
+  return [
+    Math.round((e.clientX - rect.left) * sx),
+    Math.round((e.clientY - rect.top)  * sy),
+  ];
+}
+
+lanesCanvas.addEventListener('click', e => {
+  currentLaneVerts.push(lanesCanvasPos(e));
+  drawLanes();
+});
+
+lanesCanvas.addEventListener('dblclick', e => {
+  e.preventDefault();
+  finishLane();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement !== laneNameInput) {
+    if (currentLaneVerts.length >= 3) finishLane();
+  }
+});
+
+function finishLane() {
+  if (currentLaneVerts.length < 3) {
+    lanesStatus.textContent = 'Need at least 3 vertices.';
+    return;
+  }
+  const name = (laneNameInput.value || `lane_${Object.keys(lanes).length + 1}`).trim();
+  lanes[name] = currentLaneVerts;
+  currentLaneVerts = [];
+  laneNameInput.value = `lane_${Object.keys(lanes).length + 1}`;
+  lanesStatus.textContent = `Lane "${name}" closed. ${Object.keys(lanes).length} total.`;
+  drawLanes();
+}
+
+document.getElementById('finish-lane-btn').addEventListener('click', finishLane);
+
+document.getElementById('clear-lanes-btn').addEventListener('click', () => {
+  lanes = {};
+  currentLaneVerts = [];
+  laneNameInput.value = 'lane_1';
+  lanesStatus.textContent = '';
+  lanesResults.innerHTML = '';
+  drawLanes();
+});
+
+document.getElementById('apply-lanes-btn').addEventListener('click', async () => {
+  if (Object.keys(lanes).length === 0) {
+    lanesStatus.textContent = 'Draw at least one lane first.';
+    return;
+  }
+  lanesStatus.textContent = 'Computing per-lane counts…';
+  const res = await fetch(`/jobs/${currentJobId}/lanes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(lanes),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    lanesStatus.textContent = 'Error: ' + (err.detail || res.statusText);
+    return;
+  }
+  const data = await res.json();
+  lanesStatus.textContent = `Lanes: ${Object.keys(data.per_lane).length}`;
+  renderLaneResults(data);
+});
+
+function renderLaneResults(data) {
+  const laneNames = Object.keys(data.per_lane);
+  lanesResults.innerHTML = laneNames.map((name, idx) => {
+    const color = LANE_PALETTE[idx % LANE_PALETTE.length];
+    const classes = data.per_lane[name];
+    const uniques = data.per_lane_unique ? data.per_lane_unique[name] || {} : null;
+    const total = data.totals[name];
+    const classPills = Object.entries(classes).map(([cls, n]) => {
+      const u = uniques ? uniques[cls] : undefined;
+      const tail = u !== undefined ? ` <em>(${u} unique)</em>` : '';
+      return `<span class="pill pill-${cls}">${cls} <strong>${n}</strong>${tail}</span>`;
+    }).join('');
+    return `
+      <div class="lane-row">
+        <span class="lane-chip" style="--lane-color: ${color}">${name}</span>
+        <span class="pill">Total <strong>${total}</strong></span>
+        ${classPills || '<span class="hint">no detections</span>'}
+      </div>
+    `;
+  }).join('');
+}
 
 // Initial load
 loadJobs();
