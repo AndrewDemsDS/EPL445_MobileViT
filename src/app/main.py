@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import mimetypes
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import cv2
@@ -35,7 +36,25 @@ from src.app.inference_worker import run_inference_job
 from src.app.jobs import store
 from src.app import rtsp as rtsp_module
 
-app = FastAPI(title="MobileViT Traffic Dashboard", version="1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Warm MobileViT and YOLO at startup so the first job doesn't pay
+    a ~15 s cold-start spike. Both are then held in memory and reused
+    by every subsequent inference job."""
+    print("Warming MobileViT classifier...", flush=True)
+    from src.app.models import warm_all
+    try:
+        warm_all()
+        print("Models ready.", flush=True)
+    except Exception as e:
+        # Don't block the server from starting if model files are missing
+        # (e.g. running tests without the checkpoint). Worker will retry.
+        print(f"Model warm-up skipped: {e}", flush=True)
+    yield
+
+
+app = FastAPI(title="MobileViT Traffic Dashboard", version="1.0", lifespan=lifespan)
 
 # ── Static files ─────────────────────────────────────────────────
 STATIC_DIR = Path(__file__).parent / "static"
