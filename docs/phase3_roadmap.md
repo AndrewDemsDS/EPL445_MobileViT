@@ -71,8 +71,8 @@ Today: Wed 20 May 2026. Deadline: Mon 25 May 2026, 14:00. Five days.
 | Training | 15 epochs, AdamW lr=3e-4, weight decay=1e-4, CosineAnnealingLR, two-phase freeze/unfreeze, batch=4 |
 | Hardware | AMD Radeon 780M (ROCm), HSA_OVERRIDE_GFX_VERSION=11.0.0 |
 | Inference | Multi-scale sliding window {120, 180, 256}, NMS IoU 0.3, conf 0.70 |
-| Test metrics (Interim #2 checkpoint) | Acc 96.71%, Macro F1 96.88%, Macro AUC 99.79% |
-| Retrained val F1 | 0.9807 |
+| Test metrics (sequence-disjoint, current) | Acc 96.44%, Macro F1 95.90%, Macro AUC 99.59% |
+| Best validation Macro F1 (retrain) | 0.9807 |
 
 ## Bibliography seed
 

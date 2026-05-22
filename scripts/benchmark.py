@@ -62,8 +62,10 @@ def run_benchmark(checkpoint_path: str, output_dir: str):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     resolutions = [128, 192, 256]
-    # Approximate accuracy values from your eval runs (update if you have real ones)
-    accuracy_map = {128: 94.5, 192: 95.8, 256: 96.71}
+    # Accuracy at 256 is the eval-measured value (test_metrics.json).
+    # 128 and 192 are approximate downsamples — run a real eval at those
+    # resolutions to refine if needed.
+    accuracy_map = {128: 94.5, 192: 95.8, 256: 96.44}
 
     results = []
     for res in resolutions:

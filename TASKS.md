@@ -21,10 +21,10 @@ This aligns with the course brief for Interim Presentation #2, which asks for **
 1. **Project structure** — full repo layout with configs, scripts, src, tests
 2. **Dataset preparation** — UA-DETRAC (car/bus/truck/background, ~475K crops, 4 classes)
 3. **MobileViT model wrapper** — `timm`-based, with freeze/unfreeze for staged fine-tuning
-4. **Training** — 15 epochs, best val accuracy **96.63%**, checkpoint saved
-5. **Evaluation on test set** — accuracy **96.71%**, macro F1 **96.88%**, macro AUC **99.79%**
+4. **Training** — 15 epochs, best val macro F1 **0.9807**, checkpoint saved
+5. **Evaluation on sequence-disjoint test set** — accuracy **96.44%**, macro F1 **95.90%**, macro AUC **99.59%**
 6. **All required plots** — confusion matrix, ROC curves, per-class F1, training curves
-7. **Video demo pipeline** — sliding-window detection on independent traffic video
+7. **Video demo pipeline** — YOLOv8n proposals + MobileViT classifier (sliding window kept as fallback)
 8. **Aggregated class counts** — per-frame detections, density estimate, JSON output
 9. **README with exact commands** — full instructions for all pipeline steps
 10. **Unit tests** — 10 tests, all passing
@@ -33,18 +33,18 @@ This aligns with the course brief for Interim Presentation #2, which asks for **
 
 | Metric           | Value   |
 |-----------------|---------|
-| Accuracy         | 96.71%  |
-| Macro F1         | 96.88%  |
-| Macro Precision  | 97.27%  |
-| Macro Recall     | 96.82%  |
-| Macro AUC        | 99.79%  |
+| Accuracy         | 96.44%  |
+| Macro F1         | 95.90%  |
+| Macro Precision  | 95.69%  |
+| Macro Recall     | 96.15%  |
+| Macro AUC        | 99.59%  |
 
 | Class      | Precision | Recall | Specificity | F1    |
 |-----------|-----------|--------|-------------|-------|
-| car        | 0.940     | 0.983  | 0.972       | 0.961 |
-| bus        | 0.997     | 0.987  | 0.999       | 0.992 |
-| truck      | 0.958     | 0.942  | 0.978       | 0.950 |
-| background | 0.995     | 0.960  | 0.999       | 0.977 |
+| car        | 0.960     | 0.929  | 0.992       | 0.944 |
+| bus        | 0.992     | 0.974  | 0.994       | 0.983 |
+| truck      | 0.937     | 0.963  | 0.977       | 0.950 |
+| background | 0.939     | 0.980  | 0.990       | 0.959 |
 
 ### Generated Outputs
 
