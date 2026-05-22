@@ -259,7 +259,9 @@ def run_video_inference(cfg: dict, preloaded: dict | None = None) -> None:
     # Output CSV
     output_csv = cfg.get("output_csv", "outputs/predictions/frame_predictions.csv")
     ensure_dir(Path(output_csv).parent)
-    csv_file = open(output_csv, "w", newline="")
+    # Line-buffered so the dashboard's progress poller can read rows as
+    # they're written, not only after the file closes at end-of-job.
+    csv_file = open(output_csv, "w", newline="", buffering=1)
     csv_writer = csv.DictWriter(
         csv_file,
         fieldnames=["frame_idx", "track_id", "class_name", "confidence", "x", "y", "w", "h"],

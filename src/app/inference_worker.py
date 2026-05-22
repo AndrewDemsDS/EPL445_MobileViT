@@ -143,10 +143,27 @@ def _run_with_progress(job: Job, cfg: dict) -> None:
     while t.is_alive():
         if csv_path.exists():
             try:
-                # Count non-header lines written so far as a proxy for progress
+                # The CSV has one row per detection (many per frame), so we
+                # count unique frame_idx values to estimate progress. We also
+                # track the max frame_idx seen, which is a tighter bound when
+                # some frames have no detections at all.
+                seen_frames: set[str] = set()
+                max_frame_idx = -1
                 with open(csv_path) as f:
-                    rows = sum(1 for _ in f) - 1  # subtract header
-                job.processed_frames = min(rows, expected_output_frames)
+                    next(f, None)  # skip header
+                    for line in f:
+                        idx = line.split(",", 1)[0].strip()
+                        if not idx:
+                            continue
+                        seen_frames.add(idx)
+                        try:
+                            max_frame_idx = max(max_frame_idx, int(idx))
+                        except ValueError:
+                            pass
+                # frame_idx is the original-video frame number, so we divide
+                # by total (not expected_output_frames) to track real progress.
+                processed = max(len(seen_frames), (max_frame_idx + 1) // max(frame_skip, 1))
+                job.processed_frames = min(processed, expected_output_frames)
                 job.progress = int(job.processed_frames / expected_output_frames * 100)
             except OSError:
                 pass
