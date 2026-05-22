@@ -114,12 +114,20 @@ def _run_with_progress(job: Job, cfg: dict) -> None:
 
     # Run inference in a sub-thread so we can poll progress from the main thread
     from src.inference.predict_video import run_video_inference
+    from src.app.models import get_classifier, get_yolo
+
+    # Use the FastAPI-wide singletons so we don't reload models per job
+    # (saves ~3 s for MobileViT + ~12 s for YOLO compile).
+    model, device = get_classifier()
+    preloaded = {"model": model, "device": device}
+    if cfg.get("detector", "yolo") == "yolo":
+        preloaded["yolo"] = get_yolo(cfg.get("yolo_weights", "yolov8n.pt"))
 
     exc_holder: list[Exception] = []
 
     def _worker():
         try:
-            run_video_inference(cfg)
+            run_video_inference(cfg, preloaded=preloaded)
         except Exception as e:
             exc_holder.append(e)
 
