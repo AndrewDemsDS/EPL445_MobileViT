@@ -142,7 +142,7 @@ def _classify_patches_batch(
     device: torch.device,
     class_names: list[str],
     conf_threshold: float,
-    batch_size: int = 64,
+    batch_size: int = 128,
 ) -> list[dict]:
     """Classify all window patches and return non-background detections."""
     detections: list[dict] = []
@@ -175,17 +175,32 @@ def _classify_patches_batch(
     return detections
 
 
-def run_video_inference(cfg: dict) -> None:
-    """Run sliding-window vehicle detection on a video and save results."""
+def run_video_inference(cfg: dict, preloaded: dict | None = None) -> None:
+    """Run vehicle detection on a video and save results.
+
+    `preloaded` can carry already-loaded models so we skip ~15 s of
+    cold-start per job when invoked from the FastAPI worker:
+
+        preloaded = {"model": ..., "device": ..., "yolo": ...}
+
+    Each key is optional; anything missing falls back to building from
+    `cfg`, matching the standalone CLI behaviour.
+    """
     logger = setup_logger()
-    device = get_device(cfg.get("device", "auto"))
+    preloaded = preloaded or {}
 
     # ── Model ────────────────────────────────────────────────────
-    model = build_model(cfg).to(device)
-    ckpt_path = cfg.get("checkpoint_path", "outputs/models/best_model.pth")
-    load_checkpoint(ckpt_path, model, device=device)
-    model.eval()
-    logger.info("Loaded model from %s", ckpt_path)
+    if "model" in preloaded and "device" in preloaded:
+        model = preloaded["model"]
+        device = preloaded["device"]
+        logger.info("Using preloaded MobileViT classifier (device=%s)", device)
+    else:
+        device = get_device(cfg.get("device", "auto"))
+        model = build_model(cfg).to(device)
+        ckpt_path = cfg.get("checkpoint_path", "outputs/models/best_model.pth")
+        load_checkpoint(ckpt_path, model, device=device)
+        model.eval()
+        logger.info("Loaded model from %s", ckpt_path)
 
     class_names = cfg.get("class_names", [])
     image_size = cfg.get("image_size", 256)
@@ -222,12 +237,15 @@ def run_video_inference(cfg: dict) -> None:
     detector = cfg.get("detector", "sliding").lower()
     yolo_model = None
     if detector == "yolo":
-        from ultralytics import YOLO
-        yolo_weights = cfg.get("yolo_weights", "yolov8n.pt")
-        yolo_model = YOLO(yolo_weights)
-        # Force CPU/GPU placement to match MobileViT device
-        yolo_model.to(str(device))
-        logger.info("YOLO detector enabled (weights=%s)", yolo_weights)
+        if "yolo" in preloaded:
+            yolo_model = preloaded["yolo"]
+            logger.info("Using preloaded YOLO detector")
+        else:
+            from ultralytics import YOLO
+            yolo_weights = cfg.get("yolo_weights", "yolov8n.pt")
+            yolo_model = YOLO(yolo_weights)
+            yolo_model.to(str(device))
+            logger.info("YOLO detector enabled (weights=%s)", yolo_weights)
     else:
         logger.info("Sliding-window detector enabled (sizes=%s)", win_sizes)
 
