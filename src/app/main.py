@@ -276,13 +276,17 @@ def start_rtsp_stream(url: str):
 
 
 @app.get("/stream/feed")
-def stream_feed(source: str = "0", max_frames: int = 0):
+def stream_feed(source: str = "0", max_frames: int = 0, detector: str = "yolo"):
     """MJPEG live feed for webcam ("0"), file path, or rtsp://... URL.
 
     The browser consumes this as the src of an <img> tag and renders each
     JPEG part of the multipart response as the next animation frame.
+
+    detector: "yolo" (default, fast) or "sliding" (slow, Interim 2 mode).
     """
-    generator = rtsp_module.mjpeg_stream(source, max_frames=max_frames)
+    if detector not in ("yolo", "sliding"):
+        raise HTTPException(400, "detector must be 'yolo' or 'sliding'")
+    generator = rtsp_module.mjpeg_stream(source, max_frames=max_frames, detector=detector)
     return StreamingResponse(
         generator,
         media_type="multipart/x-mixed-replace; boundary=frame",

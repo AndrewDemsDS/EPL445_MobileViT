@@ -525,8 +525,9 @@ const streamFeed        = document.getElementById('stream-feed');
 
 document.getElementById('stream-start-btn').addEventListener('click', () => {
   const source = (streamSourceInput.value || '0').trim();
-  streamStatus.textContent = `Streaming from "${source}"...`;
-  streamFeed.src = `/stream/feed?source=${encodeURIComponent(source)}&t=${Date.now()}`;
+  const detector = document.getElementById('stream-detector-select').value;
+  streamStatus.textContent = `Streaming from "${source}" (${detector})...`;
+  streamFeed.src = `/stream/feed?source=${encodeURIComponent(source)}&detector=${detector}&t=${Date.now()}`;
 });
 
 document.getElementById('stream-stop-btn').addEventListener('click', () => {

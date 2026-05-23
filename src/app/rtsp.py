@@ -21,13 +21,15 @@ def _parse_source(raw: str) -> str | int:
 
 
 def mjpeg_stream(source: str, checkpoint_path: str = "outputs/models/best_model.pth",
-                 max_frames: int = 0):
+                 max_frames: int = 0, detector: str = "yolo"):
     """Generator that yields MJPEG-framed bytes for FastAPI StreamingResponse.
 
     max_frames=0 streams until the source ends (file) or forever (webcam/RTSP).
+    detector: "yolo" (default, ~5-10 fps) or "sliding" (~0.1 fps).
     """
     parsed = _parse_source(source)
-    for jpeg, _counts in stream_frames(parsed, checkpoint_path, max_frames=max_frames):
+    for jpeg, _counts in stream_frames(parsed, checkpoint_path,
+                                       max_frames=max_frames, detector=detector):
         yield _BOUNDARY + b"\r\nContent-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n"
 
 

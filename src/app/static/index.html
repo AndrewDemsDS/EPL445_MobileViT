@@ -121,6 +121,13 @@
       </p>
       <div class="stream-controls">
         <input id="stream-source-input" placeholder="0 or rtsp://..." value="0" />
+        <label class="detector-toggle">
+          Detector:
+          <select id="stream-detector-select">
+            <option value="yolo" selected>YOLO + MobileViT</option>
+            <option value="sliding">Sliding window</option>
+          </select>
+        </label>
         <button id="stream-start-btn">Start stream</button>
         <button id="stream-stop-btn" class="secondary">Stop</button>
         <span id="stream-status" class="status-text"></span>
