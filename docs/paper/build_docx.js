@@ -267,13 +267,13 @@ const body = [
 
   subHeading("C.  Density and per-lane analytics"),
   justifyPara([
-    "Figure 5 shows the per-frame vehicle count over the 1 800-frame sample-traffic video. Density peaks correspond to platoon arrivals at the intersection in frame. The dashboard exposes the same series in real time, plus a per-lane breakdown derived from operator-drawn polygons. On the sample-traffic video, with two equal-width lanes split down the centre of the frame, the polygon counter reports 76 detections in the left lane (around 87% bus) and 54 in the right lane (mixed truck, car, bus), demonstrating that the same model can support per-direction counting without retraining.",
+    "Figure 5 shows the per-frame vehicle count over the 1 800-frame sample-traffic video. The hybrid pipeline emits 8 979 raw detections, which the SORT tracker resolves into 599 unique vehicles (411 cars, 115 buses, 73 trucks). The dashboard exposes the per-frame series in real time, plus a per-lane breakdown derived from operator-drawn polygons. On the sample-traffic video, with two equal-width lanes split down the centre of the frame, the polygon counter reports 4 927 detections in the left lane (74% car, 21% bus) and 3 502 in the right lane (87% car, 5% bus, 8% truck), demonstrating that the same model can support per-direction counting without retraining.",
   ]),
   ...figure("density_plot.png", "Figure 5: Vehicle density over time on the sample-traffic clip."),
 
   subHeading("D.  Speed and accuracy benchmark"),
   justifyPara([
-    "Table III reports classifier-only inference latency at three input resolutions, measured on the AMD Radeon 780M iGPU. The 256 by 256 setting is the production resolution; the lower resolutions trade about one to two percentage points of accuracy for roughly two-times faster inference. End-to-end pipeline throughput (YOLO + MobileViT + SORT + annotation) is approximately 4 frames per second on 4K frames downscaled to 640 by 360 for inference, versus 3 frames per second for the sliding-window baseline.",
+    "Table III reports classifier-only inference latency at three input resolutions, measured on the AMD Radeon 780M iGPU. The 256 by 256 setting is the production resolution; the lower resolutions trade about one to two percentage points of accuracy for roughly two-times faster inference. End-to-end pipeline throughput (YOLO + MobileViT + SORT + annotation) reaches approximately 10 frames per second on the 1 800-frame sample-traffic clip downscaled to 640 by 360 for inference (the full clip processes in 2 min 56 s with frame_skip=3), versus 3 frames per second for the sliding-window baseline.",
   ]),
 
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 120, after: 60 },

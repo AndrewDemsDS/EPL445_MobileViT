@@ -107,13 +107,13 @@ Figure 4 shows the loss and accuracy curves across the 15 epochs. A clear inflec
 
 ### C. Density and per-lane analytics
 
-Figure 5 shows the per-frame vehicle count over the 1 800-frame sample-traffic video. Density peaks correspond to platoon arrivals at the intersection in frame. The dashboard exposes the same series in real time, plus a per-lane breakdown derived from operator-drawn polygons. On the sample-traffic video, with two equal-width lanes split down the centre of the frame, the polygon counter reports 76 detections in the left lane (87% bus) and 54 in the right lane (mixed truck/car/bus), demonstrating that the same model can support per-direction counting without retraining.
+Figure 5 shows the per-frame vehicle count over the 1 800-frame sample-traffic video. The hybrid pipeline emits 8 979 raw detections, which the SORT tracker resolves into 599 unique vehicles (411 cars, 115 buses, 73 trucks). The dashboard exposes the per-frame series in real time, plus a per-lane breakdown derived from operator-drawn polygons. On the sample-traffic video, with two equal-width lanes split down the centre of the frame, the polygon counter reports 4 927 detections in the left lane (74% car, 21% bus) and 3 502 in the right lane (87% car, 5% bus, 8% truck), demonstrating that the same model can support per-direction counting without retraining.
 
 ![Figure 5: vehicle density over time](../../outputs/figures/density_plot.png)
 
 ### D. Speed/accuracy benchmark
 
-Table III reports inference latency for the MobileViT classifier alone at three input resolutions, measured on the AMD Radeon 780M iGPU. The 256 × 256 setting is the one used in production; the lower resolutions trade ~1–2% accuracy for ~2× faster inference. End-to-end pipeline throughput (YOLO + MobileViT + SORT + annotation) is ~4 fps on 4 K frames downscaled to 640 × 360 for inference, vs ~3 fps for the sliding-window baseline.
+Table III reports inference latency for the MobileViT classifier alone at three input resolutions, measured on the AMD Radeon 780M iGPU. The 256 × 256 setting is the one used in production; the lower resolutions trade ~1–2% accuracy for ~2× faster inference. End-to-end pipeline throughput (YOLO + MobileViT + SORT + annotation) is ~10 fps on the 1 800-frame sample-traffic video downscaled to 640 × 360 for inference (full clip in 2 min 56 s with `frame_skip=3`), versus ~3 fps for the sliding-window baseline.
 
 **Table III — MobileViT latency at three input resolutions.**
 
