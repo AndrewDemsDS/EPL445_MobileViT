@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MobileViT Traffic Dashboard — EPL445</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='1.5' y='1.5' width='45' height='45' rx='10' fill='%23ffffff' stroke='%23E1E8F2' stroke-width='1'/%3E%3Cg stroke='%23475569' stroke-opacity='0.45' stroke-width='1.2' fill='none'%3E%3Crect x='9' y='9' width='9' height='9' rx='1.5'/%3E%3Crect x='19.5' y='9' width='9' height='9' rx='1.5'/%3E%3Crect x='30' y='9' width='9' height='9' rx='1.5'/%3E%3Crect x='9' y='19.5' width='9' height='9' rx='1.5'/%3E%3Crect x='30' y='19.5' width='9' height='9' rx='1.5'/%3E%3Crect x='9' y='30' width='9' height='9' rx='1.5'/%3E%3Crect x='19.5' y='30' width='9' height='9' rx='1.5'/%3E%3Crect x='30' y='30' width='9' height='9' rx='1.5'/%3E%3C/g%3E%3Crect x='19.5' y='19.5' width='9' height='9' rx='1.5' fill='%231E47C7'/%3E%3Ccircle cx='24' cy='24' r='1.6' fill='white'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
   <link rel="stylesheet" href="/static/style.css" />
   <!-- Chart.js via CDN — no build step required -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -11,8 +16,53 @@
 <body>
   <header>
     <div class="header-inner">
-      <h1>MobileViT Traffic Dashboard</h1>
-      <span class="subtitle">EPL445 · University of Cyprus · Spring 2026</span>
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-label="MobileViT Traffic logo" role="img">
+          <!-- Outer rounded frame -->
+          <rect x="1.5" y="1.5" width="45" height="45" rx="10" ry="10"
+                fill="none" stroke="currentColor" stroke-opacity="0.18" stroke-width="1"/>
+
+          <!-- 3×3 patch grid (ViT divides images into patches).
+               Outer patches are hairline outlines; the centre patch is the
+               "attended" one in cobalt. -->
+          <g stroke="currentColor" stroke-opacity="0.32" stroke-width="1" fill="none">
+            <rect x="9"  y="9"  width="9" height="9" rx="1.5"/>
+            <rect x="19.5" y="9"  width="9" height="9" rx="1.5"/>
+            <rect x="30" y="9"  width="9" height="9" rx="1.5"/>
+            <rect x="9"  y="19.5" width="9" height="9" rx="1.5"/>
+            <rect x="30" y="19.5" width="9" height="9" rx="1.5"/>
+            <rect x="9"  y="30" width="9" height="9" rx="1.5"/>
+            <rect x="19.5" y="30" width="9" height="9" rx="1.5"/>
+            <rect x="30" y="30" width="9" height="9" rx="1.5"/>
+          </g>
+
+          <!-- Attention vectors from the four corner patches into centre -->
+          <g stroke="var(--accent)" stroke-opacity="0.45" stroke-width="1" stroke-linecap="round">
+            <line x1="17.5" y1="17.5" x2="22"   y2="22"/>
+            <line x1="30.5" y1="17.5" x2="26"   y2="22"/>
+            <line x1="17.5" y1="30.5" x2="22"   y2="26"/>
+            <line x1="30.5" y1="30.5" x2="26"   y2="26"/>
+          </g>
+
+          <!-- Centre "attended" patch — solid cobalt with inner highlight -->
+          <rect x="19.5" y="19.5" width="9" height="9" rx="1.5"
+                fill="var(--accent)"/>
+          <rect x="19.5" y="19.5" width="9" height="9" rx="1.5"
+                fill="none" stroke="white" stroke-opacity="0.25" stroke-width="0.5"
+                transform="translate(0.5,0.5)"/>
+
+          <!-- Tiny vehicle dot inside the attended patch (8×8 grid wink) -->
+          <circle cx="24" cy="24" r="1.4" fill="white" fill-opacity="0.9"/>
+        </svg>
+        <div class="brand-text">
+          <h1 class="wordmark">
+            <span class="wm-mobile">Mobile</span><span class="wm-vit">ViT</span>
+            <span class="wm-sep">/</span>
+            <span class="wm-tail">Traffic Dashboard</span>
+          </h1>
+          <span class="subtitle">EPL445 · University of Cyprus · Spring 2026</span>
+        </div>
+      </div>
     </div>
   </header>
 
