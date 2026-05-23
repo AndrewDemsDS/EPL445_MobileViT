@@ -102,7 +102,7 @@ runBtn.addEventListener('click', async () => {
 // ── Polling ──────────────────────────────────────────────────────
 function startPolling() {
   clearInterval(pollTimer);
-  pollTimer = setInterval(pollJob, 3000);
+  pollTimer = setInterval(pollJob, 1000);
   pollJob();
 }
 
