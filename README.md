@@ -152,7 +152,21 @@ Validation macro F1 on the best epoch reached **0.9807**.
 ### Web dashboard
 
 ```bash
-uvicorn src.app.main:app --host 0.0.0.0 --port 8000
+# Wrapper script — sets the ROCm env vars and pins the live stream
+# to CPU so the offline GPU job and the live stream don't fight over
+# the iGPU's shared VRAM. Required on the Radeon 780M (gfx1103).
+bash scripts/run_dashboard.sh
+
+# Or manually (no stability guarantees on AMD iGPU):
+HSA_OVERRIDE_GFX_VERSION=11.0.0 \
+  uvicorn src.app.main:app --host 0.0.0.0 --port 8000
+```
+
+Optional local RTSP demo (publishes `data/raw/traffic_long.mp4` at
+`rtsp://localhost:8554/traffic`):
+
+```bash
+bash scripts/start_rtsp.sh --detach
 ```
 
 Open <http://localhost:8000>. The dashboard supports:
