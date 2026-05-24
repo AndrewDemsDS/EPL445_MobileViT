@@ -172,3 +172,14 @@ def _run_with_progress(job: Job, cfg: dict) -> None:
     t.join()
     if exc_holder:
         raise exc_holder[0]
+
+    # GPU-hang safety net: if the worker thread vanished without raising
+    # *and* without producing the per-job counts JSON, the run did not
+    # actually complete (gfx1103 SIGABRT can take down the inference
+    # thread mid-loop). Surface this as an error so the dashboard does
+    # not advertise a ghost RUNNING job to the audience.
+    if not Path(cfg["output_counts"]).exists():
+        raise RuntimeError(
+            "inference worker exited without producing counts.json "
+            "(likely a GPU hang or hard crash)"
+        )

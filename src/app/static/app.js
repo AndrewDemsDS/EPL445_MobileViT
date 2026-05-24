@@ -330,7 +330,7 @@ async function loadJobs() {
   try {
     const jobs = await fetch('/jobs').then(r => r.json());
     jobsBody.innerHTML = jobs.map(j => {
-      const pct = j.progress || 0;
+      const pct = j.progress ?? 0;
       const progressCell = j.status === 'running'
         ? `<div class="row-progress"><div class="row-progress-bar" style="width:${pct}%"></div></div>
            <span class="row-progress-label">${pct}%</span>`
@@ -349,14 +349,24 @@ async function loadJobs() {
     }).join('');
 
     // Auto-refresh while any job is still running so the bar moves without
-    // the user clicking ↻ Refresh.
+    // the user clicking ↻ Refresh. Use a chained setTimeout so a slow
+    // /jobs response cannot stack requests, and pause polling when the
+    // tab is hidden (presenter alt-tabbing to slides should not hammer
+    // the iGPU-bound server).
     const anyRunning = jobs.some(j => j.status === 'running' || j.status === 'queued');
-    clearInterval(jobsAutoPollTimer);
-    if (anyRunning) jobsAutoPollTimer = setInterval(loadJobs, 1000);
+    clearTimeout(jobsAutoPollTimer);
+    if (anyRunning && document.visibilityState === 'visible') {
+      jobsAutoPollTimer = setTimeout(loadJobs, 1000);
+    }
   } catch (e) {
     console.error('Failed to load jobs:', e);
   }
 }
+
+// Resume polling immediately when the tab becomes visible again.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') loadJobs();
+});
 
 async function loadJobResults(jobId) {
   currentJobId = jobId;
