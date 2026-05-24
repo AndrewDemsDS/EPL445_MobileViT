@@ -174,12 +174,15 @@ def _run_with_progress(job: Job, cfg: dict) -> None:
         raise exc_holder[0]
 
     # GPU-hang safety net: if the worker thread vanished without raising
-    # *and* without producing the per-job counts JSON, the run did not
-    # actually complete (gfx1103 SIGABRT can take down the inference
-    # thread mid-loop). Surface this as an error so the dashboard does
-    # not advertise a ghost RUNNING job to the audience.
-    if not Path(cfg["output_counts"]).exists():
+    # *and* without producing the per-detection CSV + annotated MP4 that
+    # run_video_inference always writes on a clean run, the inference did
+    # not actually complete. gfx1103 SIGABRT can take down the worker
+    # thread mid-loop without surfacing a Python exception. Surface this
+    # as an error so the dashboard does not advertise a ghost RUNNING job.
+    # (counts.json is written later by aggregate_predictions in the caller,
+    # so we deliberately don't check it here.)
+    if not Path(cfg["output_csv"]).exists() or not Path(cfg["output_video"]).exists():
         raise RuntimeError(
-            "inference worker exited without producing counts.json "
+            "inference worker exited without producing output CSV/MP4 "
             "(likely a GPU hang or hard crash)"
         )
