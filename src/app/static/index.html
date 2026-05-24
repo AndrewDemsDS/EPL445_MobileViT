@@ -26,6 +26,13 @@
         <span id="file-name" class="file-name"></span>
       </div>
       <div class="upload-row">
+        <label class="detector-toggle">
+          Detector:
+          <select id="detector-select">
+            <option value="yolo" selected>YOLOv8-nano + MobileViT (fast)</option>
+            <option value="sliding">Sliding window + MobileViT (Interim 2)</option>
+          </select>
+        </label>
         <button id="run-btn" disabled>▶ Run Inference</button>
         <span id="upload-status" class="status-text"></span>
       </div>

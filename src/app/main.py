@@ -25,7 +25,7 @@ import mimetypes
 from pathlib import Path
 
 import cv2
-from fastapi import BackgroundTasks, FastAPI, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -50,18 +50,28 @@ def index():
 # ── Job endpoints ─────────────────────────────────────────────────
 
 @app.post("/jobs", status_code=202)
-async def create_job(file: UploadFile, background_tasks: BackgroundTasks):
-    """Upload a video file and start inference in the background."""
+async def create_job(
+    file: UploadFile,
+    background_tasks: BackgroundTasks,
+    detector: str = Form("yolo"),
+):
+    """Upload a video file and start inference in the background.
+
+    `detector` chooses the detection backend: "yolo" (YOLOv8-nano hybrid,
+    default) or "sliding" (multi-scale sliding window).
+    """
     if not file.filename.lower().endswith((".mp4", ".avi", ".mov", ".mkv")):
         raise HTTPException(400, "Only video files are accepted (.mp4 .avi .mov .mkv)")
+    if detector not in ("yolo", "sliding"):
+        raise HTTPException(400, "detector must be 'yolo' or 'sliding'")
 
     job = store.create()
-    # Save uploaded video
+    job.detector = detector  # picked up by the inference worker's per-job cfg
     content = await file.read()
     job.input_video.write_bytes(content)
 
     background_tasks.add_task(run_inference_job, job.job_id)
-    return {"job_id": job.job_id, "status": job.status.value}
+    return {"job_id": job.job_id, "status": job.status.value, "detector": detector}
 
 
 @app.get("/jobs")

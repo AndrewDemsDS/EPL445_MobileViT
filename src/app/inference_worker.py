@@ -18,6 +18,10 @@ def _make_cfg(job: Job) -> dict:
     cfg["output_video"] = str(job.output_video)
     cfg["output_csv"] = str(job.predictions_csv)
     cfg["output_counts"] = str(job.counts_json)
+    # Per-job detector override from the upload form (defaults to demo.yaml).
+    detector = getattr(job, "detector", None)
+    if detector in ("yolo", "sliding"):
+        cfg["detector"] = detector
     return cfg
 
 

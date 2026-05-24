@@ -31,6 +31,7 @@ class Job:
     error: str | None = None
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     finished_at: str | None = None
+    detector: str = "yolo"     # "yolo" or "sliding", set by the upload endpoint
 
     @property
     def dir(self) -> Path:

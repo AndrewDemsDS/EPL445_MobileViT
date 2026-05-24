@@ -75,6 +75,8 @@ runBtn.addEventListener('click', async () => {
 
   const formData = new FormData();
   formData.append('file', file);
+  const detector = document.getElementById('detector-select').value;
+  formData.append('detector', detector);
 
   try {
     const res = await fetch('/jobs', { method: 'POST', body: formData });
