@@ -159,4 +159,36 @@
 
 ---
 
+## Πιθανές Ερωτήσεις & Απαντήσεις — Phase 3 (Τελική Παρουσίαση)
+
+**Ε: Γιατί αντικαταστήσατε το sliding window με YOLOv8-nano και όχι με ένα ολοκληρωμένο YOLO που να ταξινομεί απευθείας;**
+
+Δύο λόγοι. Πρώτον, οι κλάσεις μας είναι προσαρμοσμένες: car, bus, truck και ιδιαίτερα background. Ένα end-to-end YOLO θα έπρεπε να μάθει την κλάση «background» ως «αρνητικό box», κάτι που δεν μοντελοποιεί φυσικά. Δεύτερον, διατηρώντας το MobileViT ως ταξινομητή κρατάμε τη δουλειά εκπαίδευσης που κάναμε. Το YOLO προτείνει σφιχτά boxes σε ~50ms ανά frame, και το MobileViT επιβεβαιώνει τη ετικέτα σε batch — συνολικά ~100ms ανά frame, δηλαδή ~10 fps end-to-end στην iGPU.
+
+---
+
+**Ε: Τι κάνει το SORT διαφορετικό από απλό IoU matching;**
+
+Το SORT είναι ουσιαστικά IoU matching ανά frame, αλλά με δύο επιπλέον μηχανισμούς: το `min_hits=2` (απαιτεί 2 διαδοχικά confirmations πριν εμφανιστεί ένα track) που φιλτράρει false positives, και το `max_age=5` (αν δεν επιβεβαιωθεί για 5 frames, το track αποσύρεται) που αντέχει σύντομες απώλειες ανίχνευσης λόγω occlusion. Σε αντίθεση με ByteTrack, δεν χρησιμοποιεί appearance embeddings, οπότε σε πλήρες occlusion δύο οχημάτων μπορεί να μπερδέψει IDs. Αυτό είναι το βασικό όριο που σημειώνουμε στο Discussion του paper.
+
+---
+
+**Ε: Πώς λειτουργεί το per-lane counting και γιατί δεν χρειάζεται επανεκπαίδευση;**
+
+Το μοντέλο παράγει per-frame detections με coordinates στο pixel space του βίντεο. Ο χειριστής σχεδιάζει polygons πάνω στο πρώτο frame μέσω HTML5 canvas. Στο backend, για κάθε ανίχνευση ελέγχουμε αν το κέντρο του bounding box είναι μέσα σε κάθε polygon με την `cv2.pointPolygonTest`. Δεν τρέχει εκ νέου το μοντέλο — διαβάζουμε ξανά το αποθηκευμένο CSV από το αρχικό inference. Αυτό σημαίνει ότι ο χειριστής μπορεί να αλλάξει τα όρια των λωρίδων ή να προσθέσει νέες χωρίς να ξανατρέξει inference.
+
+---
+
+**Ε: Γιατί FastAPI και όχι Streamlit ή Flask;**
+
+Σχεδιάστηκε για επεκτασιμότητα. Το FastAPI δίνει async endpoints, BackgroundTasks για το job queue, αυτόματα δημιουργημένο OpenAPI (Swagger) στο `/docs`, και είναι production-ready. Το Streamlit είναι ωραίο για prototyping αλλά κάθε αλληλεπίδραση χρήστη επανατρέχει ολόκληρο το script — απρόσφορο για ένα 60s annotated video που πρέπει να streamαριστεί. Το Flask θα δούλευε αλλά χωρίς τα async/BackgroundTask πλεονεκτήματα του FastAPI.
+
+---
+
+**Ε: Πόσο γρήγορο είναι το live RTSP streaming στο dashboard;**
+
+Με YOLOv8-nano + MobileViT classifier, ~5-10 fps στην iGPU για 960×540 frames. Το YOLO τρέχει ~50ms ανά frame, το MobileViT classifier σε batch επεξεργάζεται τα ~10 boxes ανά frame σε ~30ms. Το feed σερβίρεται ως multipart MJPEG (κάθε frame ως JPEG part), που το browser αποδίδει σε ένα `<img>` tag — δεν χρειάζεται WebSocket. Για RTSP IP κάμερες χρησιμοποιούμε `cv2.VideoCapture(rtsp_url)` — το ίδιο code path με τα τοπικά αρχεία.
+
+---
+
 Εκτιμώμενος χρόνος Q&A: 3–5 λεπτά
