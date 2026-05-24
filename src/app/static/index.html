@@ -113,14 +113,19 @@
 
     <!-- ── Live stream (RTSP / webcam / file) ─────────── -->
     <section id="stream-section" class="card">
-      <h2>6. Live Stream (RTSP / Webcam)</h2>
+      <h2>6. Live Stream (RTSP / Webcam / File)</h2>
       <p class="hint">
-        Enter <code>0</code> for the default webcam, a file path, or
-        <code>rtsp://camera-host/stream</code>. The feed is sliding-window inference
-        served as MJPEG (one classified frame per HTTP part).
+        Default points at the local RTSP demo at
+        <code>rtsp://localhost:8554/traffic</code>, served by
+        <code>bash scripts/start_rtsp.sh --detach</code>. You can also enter a
+        local file path, an external RTSP URL, or <code>0</code> for the
+        default webcam. The feed is served as MJPEG — one classified frame
+        per HTTP part — with YOLO + MobileViT.
       </p>
       <div class="stream-controls">
-        <input id="stream-source-input" placeholder="0 or rtsp://..." value="0" />
+        <input id="stream-source-input"
+               placeholder="rtsp://localhost:8554/traffic, data/raw/..., or 0"
+               value="rtsp://localhost:8554/traffic" />
         <label class="detector-toggle">
           Detector:
           <select id="stream-detector-select">

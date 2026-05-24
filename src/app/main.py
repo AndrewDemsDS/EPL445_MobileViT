@@ -286,6 +286,25 @@ def stream_feed(source: str = "0", max_frames: int = 0, detector: str = "yolo"):
     """
     if detector not in ("yolo", "sliding"):
         raise HTTPException(400, "detector must be 'yolo' or 'sliding'")
+
+    # Validate the source before opening the streaming response so the
+    # browser sees a 400 with a helpful message instead of an opaque
+    # "Stream error" from the <img> onerror handler.
+    parsed: int | str = int(source) if source.isdigit() else source
+    probe = cv2.VideoCapture(parsed)
+    is_open = probe.isOpened()
+    probe.release()
+    if not is_open:
+        kind = "webcam index" if isinstance(parsed, int) else (
+            "RTSP URL" if str(parsed).startswith("rtsp://") else "file path"
+        )
+        raise HTTPException(
+            400,
+            f"Could not open source ({kind}): '{source}'. "
+            "Try a local file like 'data/raw/traffic_long.mp4', "
+            "a real rtsp:// URL, or '0' if a webcam is attached."
+        )
+
     generator = rtsp_module.mjpeg_stream(source, max_frames=max_frames, detector=detector)
     return StreamingResponse(
         generator,

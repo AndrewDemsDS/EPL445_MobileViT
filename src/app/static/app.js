@@ -523,9 +523,24 @@ const streamSourceInput = document.getElementById('stream-source-input');
 const streamStatus      = document.getElementById('stream-status');
 const streamFeed        = document.getElementById('stream-feed');
 
-document.getElementById('stream-start-btn').addEventListener('click', () => {
+document.getElementById('stream-start-btn').addEventListener('click', async () => {
   const source = (streamSourceInput.value || '0').trim();
   const detector = document.getElementById('stream-detector-select').value;
+  // Probe the source first so we can surface a precise backend error
+  // instead of waiting for the <img> onerror to fire.
+  streamStatus.textContent = `Validating source...`;
+  const probeUrl = `/stream/feed?source=${encodeURIComponent(source)}&detector=${detector}&max_frames=1`;
+  try {
+    const probe = await fetch(probeUrl, { method: 'GET' });
+    if (!probe.ok) {
+      const err = await probe.json().catch(() => ({}));
+      streamStatus.textContent = `Error: ${err.detail || probe.statusText}`;
+      return;
+    }
+  } catch (e) {
+    streamStatus.textContent = `Network error: ${e.message}`;
+    return;
+  }
   streamStatus.textContent = `Streaming from "${source}" (${detector})...`;
   streamFeed.src = `/stream/feed?source=${encodeURIComponent(source)}&detector=${detector}&t=${Date.now()}`;
 });
