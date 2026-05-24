@@ -45,10 +45,15 @@ def _encode_for_web(mp4_path: Path) -> None:
     web_path = mp4_path.with_name("web_" + mp4_path.name)
     if web_path.exists():
         return
+    # `-preset ultrafast` cuts the encode time ~3x at the cost of a slightly
+    # larger output, which is fine for the dashboard preview (browser plays
+    # H.264 of any quality). `-tune zerolatency` helps when the source is a
+    # live MP4 with mp4v that ffmpeg has to parse on the fly.
     subprocess.run(
         ["ffmpeg", "-loglevel", "error", "-y",
          "-i", str(mp4_path),
-         "-vcodec", "libx264", "-pix_fmt", "yuv420p",
+         "-vcodec", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
+         "-pix_fmt", "yuv420p",
          "-movflags", "+faststart",
          str(web_path)],
         check=False,
