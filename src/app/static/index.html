@@ -104,6 +104,25 @@
       <div id="lanes-results"></div>
     </section>
 
+    <!-- ── Live stream (RTSP / webcam / file) ─────────── -->
+    <section id="stream-section" class="card">
+      <h2>6. Live Stream (RTSP / Webcam)</h2>
+      <p class="hint">
+        Enter <code>0</code> for the default webcam, a file path, or
+        <code>rtsp://camera-host/stream</code>. The feed is sliding-window inference
+        served as MJPEG (one classified frame per HTTP part).
+      </p>
+      <div class="stream-controls">
+        <input id="stream-source-input" placeholder="0 or rtsp://..." value="0" />
+        <button id="stream-start-btn">Start stream</button>
+        <button id="stream-stop-btn" class="secondary">Stop</button>
+        <span id="stream-status" class="status-text"></span>
+      </div>
+      <div class="stream-feed-wrap">
+        <img id="stream-feed" alt="" />
+      </div>
+    </section>
+
     <!-- ── Past Jobs ──────────────────────────────────── -->
     <section id="jobs-section" class="card">
       <h2>Past Jobs</h2>

@@ -34,6 +34,55 @@ def get_transform(img_size: int = 256):
     ])
 
 
+def stream_frames(source, checkpoint_path: str, img_size: int = 256,
+                  window_size: int = 64, stride: int = 32, max_frames: int = 0):
+    """Yield (jpeg_bytes, counts_dict) tuples for each annotated frame.
+
+    Intended for the FastAPI MJPEG endpoint. `max_frames=0` means unbounded.
+    """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = load_model(checkpoint_path, device)
+    transform = get_transform(img_size)
+
+    cap = cv2.VideoCapture(source)
+    if not cap.isOpened():
+        raise RuntimeError(f"Could not open source: {source}")
+
+    frame_id = 0
+    while max_frames == 0 or frame_id < max_frames:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        h, w = frame.shape[:2]
+        counts = {cls: 0 for cls in CLASSES}
+        for y in range(0, h - window_size, stride):
+            for x in range(0, w - window_size, stride):
+                patch = frame[y:y+window_size, x:x+window_size]
+                tensor = transform(patch).unsqueeze(0).to(device)
+                with torch.no_grad():
+                    pred = torch.argmax(model(tensor), dim=1).item()
+                label = CLASSES[pred]
+                if label != "background":
+                    counts[label] += 1
+                    cv2.rectangle(frame, (x, y), (x+window_size, y+window_size), COLORS[label], 1)
+                    cv2.putText(frame, label, (x, y - 4),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.4, COLORS[label], 1)
+        # HUD
+        y_off = 20
+        for cls, n in counts.items():
+            if cls == "background": continue
+            cv2.putText(frame, f"{cls}: {n}", (10, y_off),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, COLORS[cls], 2)
+            y_off += 25
+        cv2.putText(frame, f"Frame: {frame_id}", (10, y_off),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        ok, buf = cv2.imencode(".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
+        if ok:
+            yield buf.tobytes(), counts
+        frame_id += 1
+    cap.release()
+
+
 def run_stream(source, checkpoint_path: str, img_size: int = 256, window_size: int = 64, stride: int = 32):
     """
     Run real-time inference on a video file, webcam, or RTSP stream.

@@ -234,13 +234,27 @@ def dev_seed():
     return job.to_dict()
 
 
-# ── RTSP endpoints (stub) ─────────────────────────────────────────
+# ── Live stream endpoints ────────────────────────────────────────
 
 @app.get("/rtsp/streams")
 def list_rtsp_streams():
     return rtsp_module.list_streams()
 
 
-@app.post("/rtsp/streams", status_code=501)
+@app.post("/rtsp/streams")
 def start_rtsp_stream(url: str):
     return rtsp_module.start_stream(url)
+
+
+@app.get("/stream/feed")
+def stream_feed(source: str = "0", max_frames: int = 0):
+    """MJPEG live feed for webcam ("0"), file path, or rtsp://... URL.
+
+    The browser consumes this as the src of an <img> tag and renders each
+    JPEG part of the multipart response as the next animation frame.
+    """
+    generator = rtsp_module.mjpeg_stream(source, max_frames=max_frames)
+    return StreamingResponse(
+        generator,
+        media_type="multipart/x-mixed-replace; boundary=frame",
+    )

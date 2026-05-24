@@ -1,23 +1,40 @@
-"""RTSP stream support — stub for Phase 3 stretch goal.
+"""RTSP/webcam streaming wrappers for the dashboard.
 
-To implement:
-1. Accept an RTSP URL (e.g. rtsp://camera-ip:554/stream)
-2. Open with cv2.VideoCapture(url)
-3. Run sliding-window inference frame-by-frame
-4. Stream annotated frames as MJPEG via a FastAPI StreamingResponse
-5. Integrate ByteTrack/SORT for persistent vehicle IDs
+The standalone CLI in src/inference/stream.py uses cv2.imshow. For the
+web dashboard we re-use the same model-loading and inference code via
+stream_frames(), which yields JPEG bytes per annotated frame, and serve
+it as a multipart/x-mixed-replace MJPEG stream.
 """
 
 from __future__ import annotations
 
+from src.inference.stream import stream_frames
 
-_active_streams: dict[str, dict] = {}
+
+# A boundary string the browser uses to delimit MJPEG frames.
+_BOUNDARY = b"--frame"
+
+
+def _parse_source(raw: str) -> str | int:
+    """Convert "0" -> 0 (webcam), keep rtsp://... and file paths as-is."""
+    return int(raw) if raw.isdigit() else raw
+
+
+def mjpeg_stream(source: str, checkpoint_path: str = "outputs/models/best_model.pth",
+                 max_frames: int = 0):
+    """Generator that yields MJPEG-framed bytes for FastAPI StreamingResponse.
+
+    max_frames=0 streams until the source ends (file) or forever (webcam/RTSP).
+    """
+    parsed = _parse_source(source)
+    for jpeg, _counts in stream_frames(parsed, checkpoint_path, max_frames=max_frames):
+        yield _BOUNDARY + b"\r\nContent-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n"
 
 
 def list_streams() -> list[dict]:
-    return list(_active_streams.values())
+    """No persistent stream registry yet; UI uses a single feed at a time."""
+    return []
 
 
 def start_stream(url: str) -> dict:
-    # TODO: validate URL, spin up inference thread, return stream_id
-    return {"error": "RTSP support not yet implemented", "url": url}
+    return {"status": "started", "url": url, "feed": f"/stream/feed?source={url}"}

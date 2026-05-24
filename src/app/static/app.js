@@ -516,5 +516,25 @@ function renderLaneResults(data) {
   }).join('');
 }
 
+// ── Live stream panel ────────────────────────────────────────────
+const streamSourceInput = document.getElementById('stream-source-input');
+const streamStatus      = document.getElementById('stream-status');
+const streamFeed        = document.getElementById('stream-feed');
+
+document.getElementById('stream-start-btn').addEventListener('click', () => {
+  const source = (streamSourceInput.value || '0').trim();
+  streamStatus.textContent = `Streaming from "${source}"...`;
+  streamFeed.src = `/stream/feed?source=${encodeURIComponent(source)}&t=${Date.now()}`;
+});
+
+document.getElementById('stream-stop-btn').addEventListener('click', () => {
+  streamFeed.src = '';
+  streamStatus.textContent = 'Stopped.';
+});
+
+streamFeed.addEventListener('error', () => {
+  streamStatus.textContent = 'Stream error — check source URL or webcam permissions.';
+});
+
 // Initial load
 loadJobs();
