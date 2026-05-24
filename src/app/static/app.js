@@ -324,20 +324,35 @@ function renderRoiPills(data) {
 // ── Past jobs table ──────────────────────────────────────────────
 document.getElementById('refresh-jobs-btn').addEventListener('click', loadJobs);
 
+let jobsAutoPollTimer = null;
+
 async function loadJobs() {
   try {
     const jobs = await fetch('/jobs').then(r => r.json());
-    jobsBody.innerHTML = jobs.map(j => `
-      <tr>
-        <td><code>${j.job_id}</code></td>
-        <td><span class="badge badge-${j.status}">${j.status}</span></td>
-        <td>${j.progress}%</td>
-        <td>${j.created_at.replace('T', ' ').slice(0, 19)}</td>
-        <td>${j.status === 'done'
-          ? `<button class="secondary small" onclick="loadJobResults('${j.job_id}')">View</button>`
-          : ''}</td>
-      </tr>
-    `).join('');
+    jobsBody.innerHTML = jobs.map(j => {
+      const pct = j.progress || 0;
+      const progressCell = j.status === 'running'
+        ? `<div class="row-progress"><div class="row-progress-bar" style="width:${pct}%"></div></div>
+           <span class="row-progress-label">${pct}%</span>`
+        : `${pct}%`;
+      return `
+        <tr>
+          <td><code>${j.job_id}</code></td>
+          <td><span class="badge badge-${j.status}">${j.status}</span></td>
+          <td>${progressCell}</td>
+          <td>${j.created_at.replace('T', ' ').slice(0, 19)}</td>
+          <td>${j.status === 'done'
+            ? `<button class="secondary small" onclick="loadJobResults('${j.job_id}')">View</button>`
+            : ''}</td>
+        </tr>
+      `;
+    }).join('');
+
+    // Auto-refresh while any job is still running so the bar moves without
+    // the user clicking ↻ Refresh.
+    const anyRunning = jobs.some(j => j.status === 'running' || j.status === 'queued');
+    clearInterval(jobsAutoPollTimer);
+    if (anyRunning) jobsAutoPollTimer = setInterval(loadJobs, 1000);
   } catch (e) {
     console.error('Failed to load jobs:', e);
   }
