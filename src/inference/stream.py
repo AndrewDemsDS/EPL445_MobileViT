@@ -83,19 +83,35 @@ def stream_frames(
     detector : "yolo" (default, ~5-10 fps) or "sliding" (~0.1 fps)
     max_frames : 0 means until the source ends or the client disconnects
     """
-    # Reuse the FastAPI-wide singletons when available; fall back to fresh load.
-    try:
-        from src.app.models import get_classifier, get_yolo
-        model, device = get_classifier()
-        yolo_model = get_yolo() if detector == "yolo" else None
-    except Exception:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # STREAM_DEVICE=cpu pins the live stream to CPU so it doesn't fight the
+    # offline job over the iGPU's shared VRAM. The offline jobs still use
+    # GPU. Default is cpu because the live demo prizes stability over fps.
+    import os
+    force_cpu = os.environ.get("STREAM_DEVICE", "cpu").lower() == "cpu"
+
+    if force_cpu:
+        device = torch.device("cpu")
         model = load_model(checkpoint_path, device)
         yolo_model = None
         if detector == "yolo":
             from ultralytics import YOLO
             yolo_model = YOLO("yolov8n.pt")
-            yolo_model.to(str(device))
+            # ultralytics auto-selects cpu when device is unavailable; force it
+            yolo_model.to("cpu")
+    else:
+        # Reuse the FastAPI-wide singletons (live on whichever device they're on).
+        try:
+            from src.app.models import get_classifier, get_yolo
+            model, device = get_classifier()
+            yolo_model = get_yolo() if detector == "yolo" else None
+        except Exception:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model = load_model(checkpoint_path, device)
+            yolo_model = None
+            if detector == "yolo":
+                from ultralytics import YOLO
+                yolo_model = YOLO("yolov8n.pt")
+                yolo_model.to(str(device))
 
     transform = get_eval_transforms(img_size)
 
