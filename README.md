@@ -90,9 +90,21 @@ Outputs:
 
 ### 5. Video demo
 
+The reference traffic clips aren't checked into git (too large). Fetch
+them from the GitHub release first — this populates `data/raw/` and one
+pre-encoded annotated example under `outputs/predictions/`:
+
 ```bash
-# Place a traffic video at data/raw/sample_traffic.mp4 (or edit configs/demo.yaml)
+bash scripts/fetch_videos.sh        # Linux / macOS
+# scripts\fetch_videos.bat          # Windows (double-click also works)
+```
+
+Then run the demo:
+
+```bash
 bash scripts/run_demo.sh
+# or, on Windows:
+# scripts\run_demo.bat
 ```
 
 Outputs:
@@ -210,6 +222,51 @@ python -m src.inference.stream --source rtsp://camera.local/stream   # IP camera
 ```
 
 ---
+
+## Windows quickstart
+
+The Linux wrappers (`scripts/run_*.sh`) export ROCm env vars used only by
+the Radeon 780M iGPU in this project's dev machine. Windows users should
+use the PowerShell / batch equivalents — they skip the AMD-Linux flags
+and let the cross-platform `run_dashboard.py` launcher pick CUDA,
+DirectML, or CPU automatically.
+
+```powershell
+# 1. Clone + install
+git clone https://github.com/AndrewDemsDS/EPL445_MobileViT.git
+cd EPL445_MobileViT
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pip install -e .
+
+# 2. Fetch demo videos (~380 MB) from the GitHub release
+.\scripts\fetch_videos.ps1            # or: scripts\fetch_videos.bat
+
+# 3. Launch the dashboard at http://localhost:8000
+.\scripts\run_dashboard.ps1           # or: scripts\run_dashboard.bat
+
+# Other entry points
+.\scripts\run_train.ps1
+.\scripts\run_eval.ps1
+.\scripts\run_demo.ps1
+```
+
+If PowerShell blocks the `.ps1` scripts, either run them through the
+`.bat` shims or relax the policy for the current user:
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+GPU notes for Windows:
+
+- **NVIDIA** — install a CUDA-enabled PyTorch wheel from
+  <https://pytorch.org/get-started/locally/> *before* `pip install -r
+  requirements.txt`. The launcher reports `CUDA (<device name>)` on
+  start.
+- **AMD** — install [`torch-directml`](https://learn.microsoft.com/en-us/windows/ai/directml/pytorch-windows)
+  for GPU acceleration on Radeon; the launcher will pick it up and print
+  `DirectML (...)`. ROCm itself is Linux-only and is not used on
+  Windows.
+- **CPU only** — works out of the box, just slower.
 
 ## Running Tests
 
