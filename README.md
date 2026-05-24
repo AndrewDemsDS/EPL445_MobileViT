@@ -4,6 +4,8 @@
 >
 > Team: Andreas Demosthenous & Marios Olymbios
 
+![Dashboard](docs/screenshots/dashboard_full.png)
+
 ## Overview
 
 This project implements a **frame-level traffic classification** system using a

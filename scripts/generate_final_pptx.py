@@ -100,6 +100,7 @@ SLIDES = [
     "Detection: Sliding Window vs YOLO",
     "Cross-Frame Tracking (SORT)",
     "Per-Lane Counting + Web Dashboard",
+    "Live Dashboard Screenshot",
     "Results — Classification Metrics",
     "Results — Confusion Matrix & ROC",
     "Results — Training & Density",
@@ -383,7 +384,36 @@ for h, b in cards:
 add_footer(sl, 9, TOTAL)
 
 
-# ── Slide 10 — Classification metrics ────────────────────────────
+# ── Slide 10 — Live dashboard screenshot ─────────────────────────
+sl = prs.slides.add_slide(blank)
+bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
+add_solid_fill(bg, WHITE); bg.line.fill.background()
+add_header_bar(sl, "Live Dashboard",
+               subtitle_text="FastAPI + vanilla HTML/JS, no build step")
+shot_path = os.path.join(HERE, "..", "docs", "screenshots", "dashboard_full.png")
+if os.path.exists(shot_path):
+    # Letterbox — original is tall portrait, fit by height
+    sl.shapes.add_picture(shot_path, Inches(4.0), Inches(1.55), height=Inches(5.2))
+# Annotations on the right side
+notes = [
+    ("Drag-and-drop upload", "MP4 in, background inference starts, progress bar polls every 3 s"),
+    ("Annotated H.264 video", "Lazily re-encoded from OpenCV mp4v so it plays in-browser"),
+    ("Counts and timeline", "Bar chart + density line chart via Chart.js (CDN, no build)"),
+    ("Rectangle and polygon ROIs", "Filter detections by region or split into per-lane polygons"),
+    ("Past jobs table", "Click to re-open any prior run"),
+]
+y = Inches(1.6)
+for h, b in notes:
+    tb = sl.shapes.add_textbox(Inches(0.4), y, Inches(3.5), Inches(0.32))
+    set_text(tb.text_frame, h, size=13, bold=True, color=UCY_BLUE)
+    tb = sl.shapes.add_textbox(Inches(0.4), y + Inches(0.32), Inches(3.5), Inches(0.6))
+    tb.text_frame.word_wrap = True
+    set_text(tb.text_frame, b, size=11, color=DARK_GREY)
+    y += Inches(1.02)
+add_footer(sl, 10, TOTAL)
+
+
+# ── Slide 11 — Classification metrics ────────────────────────────
 sl = prs.slides.add_slide(blank)
 bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
 add_solid_fill(bg, LIGHT_GREY); bg.line.fill.background()
@@ -434,10 +464,10 @@ tb = sl.shapes.add_textbox(Inches(0.4), Inches(6.0), Inches(12.4), Inches(0.4))
 set_text(tb.text_frame,
          "Bus is easiest (large, distinctive). Car is hardest — confused with truck at distance.",
          size=12, color=DARK_GREY, italic=True)
-add_footer(sl, 10, TOTAL)
+add_footer(sl, 11, TOTAL)
 
 
-# ── Slide 11 — Figures: confusion + ROC ──────────────────────────
+# ── Slide 12 — Figures: confusion + ROC ──────────────────────────
 sl = prs.slides.add_slide(blank)
 bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
 add_solid_fill(bg, WHITE); bg.line.fill.background()
@@ -452,10 +482,10 @@ tb = sl.shapes.add_textbox(Inches(0.4), Inches(6.4), Inches(12.4), Inches(0.4))
 set_text(tb.text_frame,
          "Mistakes concentrate on the car ↔ truck boundary. All four ROC curves crowd the top-left corner.",
          size=13, color=DARK_GREY, italic=True, align=PP_ALIGN.CENTER)
-add_footer(sl, 11, TOTAL)
+add_footer(sl, 12, TOTAL)
 
 
-# ── Slide 12 — Figures: training + density ───────────────────────
+# ── Slide 13 — Figures: training + density ───────────────────────
 sl = prs.slides.add_slide(blank)
 bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
 add_solid_fill(bg, LIGHT_GREY); bg.line.fill.background()
@@ -470,10 +500,10 @@ tb = sl.shapes.add_textbox(Inches(0.4), Inches(6.4), Inches(12.4), Inches(0.4))
 set_text(tb.text_frame,
          "Backbone unfreezes at epoch 4 — clear inflection. Density peaks correspond to platoon arrivals.",
          size=13, color=DARK_GREY, italic=True, align=PP_ALIGN.CENTER)
-add_footer(sl, 12, TOTAL)
+add_footer(sl, 13, TOTAL)
 
 
-# ── Slide 13 — Speed/accuracy benchmark ─────────────────────────
+# ── Slide 14 — Speed/accuracy benchmark ─────────────────────────
 sl = prs.slides.add_slide(blank)
 bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
 add_solid_fill(bg, WHITE); bg.line.fill.background()
@@ -512,10 +542,10 @@ set_text(tb.text_frame,
          "~4 fps on 4K frames downscaled to 640x360 for inference, vs ~3 fps for the sliding-window baseline. "
          "First-frame YOLO compile adds a one-off ~15 s warmup.",
          size=15, color=DARK_GREY, italic=True)
-add_footer(sl, 13, TOTAL)
+add_footer(sl, 14, TOTAL)
 
 
-# ── Slide 14 — Discussion & Limitations ─────────────────────────
+# ── Slide 15 — Discussion & Limitations ─────────────────────────
 sl = prs.slides.add_slide(blank)
 bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
 add_solid_fill(bg, LIGHT_GREY); bg.line.fill.background()
@@ -531,10 +561,10 @@ y = Inches(1.55)
 for h, b in cards:
     two_col_card(sl, Inches(0.4), y, Inches(12.4), Inches(0.95), h, b)
     y += Inches(1.04)
-add_footer(sl, 14, TOTAL)
+add_footer(sl, 15, TOTAL)
 
 
-# ── Slide 15 — Future work ──────────────────────────────────────
+# ── Slide 16 — Future work ──────────────────────────────────────
 sl = prs.slides.add_slide(blank)
 bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
 add_solid_fill(bg, WHITE); bg.line.fill.background()
@@ -550,10 +580,10 @@ y = Inches(1.6)
 for h, b in items:
     two_col_card(sl, Inches(0.4), y, Inches(12.4), Inches(0.85), h, b)
     y += Inches(0.95)
-add_footer(sl, 15, TOTAL)
+add_footer(sl, 16, TOTAL)
 
 
-# ── Slide 16 — Live demo ────────────────────────────────────────
+# ── Slide 17 — Live demo ────────────────────────────────────────
 sl = prs.slides.add_slide(blank)
 bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
 add_solid_fill(bg, UCY_BLUE); bg.line.fill.background()
@@ -576,10 +606,10 @@ for s in script:
     tb = sl.shapes.add_textbox(Inches(2.0), y, Inches(9.5), Inches(0.45))
     set_text(tb.text_frame, s, size=16, color=WHITE)
     y += Inches(0.55)
-add_footer(sl, 16, TOTAL)
+add_footer(sl, 17, TOTAL)
 
 
-# ── Slide 17 — Q&A ──────────────────────────────────────────────
+# ── Slide 18 — Q&A ──────────────────────────────────────────────
 sl = prs.slides.add_slide(blank)
 bg = sl.shapes.add_shape(1, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
 add_solid_fill(bg, UCY_BLUE); bg.line.fill.background()
@@ -595,7 +625,7 @@ set_text(tb.text_frame, "{ademos05, molymp01}@ucy.ac.cy", size=18, color=WHITE, 
 tb = sl.shapes.add_textbox(Inches(0.5), Inches(5.0), Inches(12.3), Inches(0.5))
 set_text(tb.text_frame, "Repository: github.com/AndrewDemsDS/EPL445_MobileViT",
          size=16, color=WHITE, align=PP_ALIGN.CENTER, italic=True)
-add_footer(sl, 17, TOTAL)
+add_footer(sl, 18, TOTAL)
 
 
 # ── Save ────────────────────────────────────────────────────────
