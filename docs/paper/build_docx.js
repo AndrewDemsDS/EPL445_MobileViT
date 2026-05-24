@@ -186,8 +186,9 @@ const body = [
   ]),
   justifyPara([
     { text: "YOLO + MobileViT hybrid (default). ", bold: true },
-    "YOLOv8-nano [2], pretrained on COCO, produces vehicle bounding boxes (COCO classes 2, 3, 5, 7). Each YOLO box is cropped and reclassified by MobileViT in the four-class taxonomy. Boxes that MobileViT labels as background are discarded. Because YOLO already runs NMS on its output, no additional NMS is required. The hybrid yields tighter boxes and fewer duplicates than the sliding window with comparable steady-state throughput (Section III-D).",
+    "YOLOv8-nano [2], pretrained on COCO, produces vehicle bounding boxes (COCO classes 2, 3, 5, 7). Each YOLO box is cropped and reclassified by MobileViT in the four-class taxonomy. Boxes that MobileViT labels as background are discarded. Because YOLO already runs NMS on its output, no additional NMS is required. The hybrid yields tighter boxes and fewer duplicates than the sliding window with comparable steady-state throughput (Section III-D). Figure 6 shows the same frame annotated by both backends: the sliding window emits uniform 256 by 256 tiles regardless of vehicle size, while YOLO emits one tight box per vehicle.",
   ]),
+  ...figure("detector_comparison.png", "Figure 6: same frame annotated by the sliding window (left) and the YOLO+MobileViT hybrid (right)."),
 
   subHeading("E.  SORT tracker"),
   justifyPara([

@@ -50,7 +50,9 @@ Because MobileViT outputs class probabilities rather than bounding boxes, we eva
 
 **Multi-scale sliding window.** Three window sizes (120, 180, 256 px) at 50% stride tile each frame, every crop is classified, and per-class greedy NMS (IoU = 0.3) removes overlaps. This is the Interim #2 baseline. It is conceptually simple but spends most of the compute on background tiles.
 
-**YOLO + MobileViT hybrid (default).** YOLOv8-nano [2], pretrained on COCO, produces vehicle bounding boxes (COCO classes 2, 3, 5, 7). Each YOLO box is cropped and reclassified by MobileViT in the four-class taxonomy. Boxes that MobileViT labels as `background` are discarded. Because YOLO already runs NMS on its output, no additional NMS is required. The hybrid yields tighter boxes and fewer duplicates than the sliding window with comparable steady-state throughput (Section III-D).
+**YOLO + MobileViT hybrid (default).** YOLOv8-nano [2], pretrained on COCO, produces vehicle bounding boxes (COCO classes 2, 3, 5, 7). Each YOLO box is cropped and reclassified by MobileViT in the four-class taxonomy. Boxes that MobileViT labels as `background` are discarded. Because YOLO already runs NMS on its output, no additional NMS is required. The hybrid yields tighter boxes and fewer duplicates than the sliding window with comparable steady-state throughput (Section III-D). Figure 6 shows the same frame annotated by both backends — the sliding window emits uniform 256 × 256 tiles regardless of vehicle size, while YOLO emits one tight box per vehicle.
+
+![Figure 6: detector comparison](../../outputs/figures/detector_comparison.png)
 
 ### E. SORT tracker
 
