@@ -1,0 +1,32 @@
+# MediaMTX configuration for the EPL445 RTSP demo.
+#
+# Publishes data/raw/traffic_long.mp4 as a looping RTSP feed at
+#   rtsp://localhost:8554/traffic
+# so the dashboard's stream panel can be demonstrated against a real
+# rtsp:// URL without depending on any public test stream.
+#
+# Launch via scripts/start_rtsp.sh from the project root, or manually:
+#   ./scripts/bin/mediamtx ./scripts/mediamtx.yml
+
+logLevel: info
+logDestinations: [stdout]
+api: no
+metrics: no
+
+# Disable the protocols we don't need so the binary doesn't grab extra ports.
+hls: no
+webrtc: no
+srt: no
+rtmp: no
+
+rtspAddress: :8554
+
+paths:
+  traffic:
+    # Spawn an ffmpeg process that re-publishes the local MP4 in a loop
+    # using stream-copy (no re-encode). Restart automatically on EOF.
+    runOnInit: >
+      ffmpeg -re -stream_loop -1 -i data/raw/traffic_long.mp4
+             -c:v copy -an -f rtsp -rtsp_transport tcp
+             rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInitRestart: yes
