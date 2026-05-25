@@ -67,6 +67,7 @@ def run_inference_job(job_id: str) -> None:
         return
 
     job.status = JobStatus.RUNNING
+    store.save(job)
 
     try:
         # Import here to avoid loading torch at module import time
@@ -93,6 +94,7 @@ def run_inference_job(job_id: str) -> None:
 
     finally:
         job.finished_at = datetime.utcnow().isoformat()
+        store.save(job)
 
 
 def _run_with_progress(job: Job, cfg: dict) -> None:

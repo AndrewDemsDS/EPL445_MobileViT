@@ -86,6 +86,7 @@ async def create_job(
 
     job = store.create()
     job.detector = detector  # picked up by the inference worker's per-job cfg
+    store.save(job)
     content = await file.read()
     job.input_video.write_bytes(content)
 
