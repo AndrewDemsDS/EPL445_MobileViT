@@ -8,8 +8,6 @@ it as a multipart/x-mixed-replace MJPEG stream.
 
 from __future__ import annotations
 
-from src.inference.stream import stream_frames
-
 
 # A boundary string the browser uses to delimit MJPEG frames.
 _BOUNDARY = b"--frame"
@@ -27,6 +25,9 @@ def mjpeg_stream(source: str, checkpoint_path: str = "outputs/models/best_model.
     max_frames=0 streams until the source ends (file) or forever (webcam/RTSP).
     detector: "yolo" (default, ~5-10 fps) or "sliding" (~0.1 fps).
     """
+    # Lazy import: stream_frames pulls in timm/torch which are only needed
+    # when a stream is actually started, not at server startup.
+    from src.inference.stream import stream_frames
     parsed = _parse_source(source)
     for jpeg, _counts in stream_frames(parsed, checkpoint_path,
                                        max_frames=max_frames, detector=detector):

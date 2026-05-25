@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import torch
 import yaml
 
 
@@ -41,13 +40,14 @@ def ensure_dir(path: str | Path) -> Path:
 
 
 def save_checkpoint(
-    model: torch.nn.Module,
-    optimizer: torch.optim.Optimizer | None,
+    model: "torch.nn.Module",
+    optimizer: "torch.optim.Optimizer | None",
     epoch: int,
     metrics: dict[str, float],
     path: str | Path,
 ) -> None:
     """Save a training checkpoint."""
+    import torch
     ensure_dir(Path(path).parent)
     payload = {
         "epoch": epoch,
@@ -61,14 +61,15 @@ def save_checkpoint(
 
 def load_checkpoint(
     path: str | Path,
-    model: torch.nn.Module,
-    optimizer: torch.optim.Optimizer | None = None,
-    device: torch.device | str = "cpu",
+    model: "torch.nn.Module",
+    optimizer: "torch.optim.Optimizer | None" = None,
+    device: "torch.device | str" = "cpu",
 ) -> dict[str, Any]:
     """Load a checkpoint into *model* (and optionally *optimizer*).
 
     Returns the full checkpoint dict so callers can inspect epoch/metrics.
     """
+    import torch
     ckpt = torch.load(path, map_location=device, weights_only=False)
     model.load_state_dict(ckpt["model_state_dict"])
     if optimizer is not None and "optimizer_state_dict" in ckpt:

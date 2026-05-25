@@ -8,24 +8,27 @@ for the YOLO compile on every subsequent job.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Tuple
+from typing import TYPE_CHECKING, Tuple
 
-import numpy as np
-import torch
+if TYPE_CHECKING:
+    import torch
 
-from src.models.model_factory import build_model
-from src.utils.device import get_device
-from src.utils.io import load_checkpoint, merge_configs
+from src.utils.io import merge_configs
 
 
 @lru_cache(maxsize=1)
-def get_classifier() -> Tuple[torch.nn.Module, torch.device]:
+def get_classifier() -> "Tuple[torch.nn.Module, torch.device]":
     """Return the fine-tuned MobileViT classifier and its device.
 
     Reads the same configs/default.yaml + configs/demo.yaml the job
     config does, so checkpoint_path and image_size match what the
     worker would have produced.
     """
+    import torch  # noqa: F811
+    from src.models.model_factory import build_model
+    from src.utils.device import get_device
+    from src.utils.io import load_checkpoint
+
     cfg = merge_configs("configs/default.yaml", "configs/demo.yaml")
     device = get_device(cfg.get("device", "auto"))
     model = build_model(cfg).to(device)
@@ -43,7 +46,8 @@ def get_yolo(weights: str = "yolov8n.pt"):
     (if needed) and CUDA/ROCm kernel compilation, so the first real
     job doesn't pay the ~12 s spike.
     """
-    from ultralytics import YOLO  # local import keeps cold start fast for sliding-only jobs
+    import numpy as np
+    from ultralytics import YOLO
 
     _, device = get_classifier()
     model = YOLO(weights)

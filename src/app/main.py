@@ -167,13 +167,13 @@ def get_video(job_id: str):
     job = store.get(job_id)
     if job is None:
         raise HTTPException(404, "Job not found")
-    if not job.output_video.exists():
+    web_video = job.output_video.with_name("web_" + job.output_video.name)
+    if not job.output_video.exists() and not web_video.exists():
         raise HTTPException(404, "Video not ready yet")
 
     # OpenCV writes mp4v which most browsers cannot decode. Lazily re-encode
     # to H.264 with ffmpeg the first time the endpoint is hit.
-    web_video = job.output_video.with_name("web_" + job.output_video.name)
-    if not web_video.exists():
+    if not web_video.exists() and job.output_video.exists():
         import shutil, subprocess
         if shutil.which("ffmpeg"):
             subprocess.run(
