@@ -22,6 +22,10 @@ yolo_conf: 0.25                 # YOLO box-confidence threshold
 max_inference_dim: 640          # resize long side for faster processing
 window_sizes: [120, 180, 256]   # multi-scale patch sizes (pixels)
 stride_ratio: 0.5               # window stride = size * ratio
+# MobileViT mini-batch size when classifying patches. Kept small for the
+# Radeon 780M iGPU — larger values reliably hang gfx1103 (SIGABRT 134)
+# when the FastAPI dashboard is also resident in shared VRAM.
+classifier_batch_size: 16
 
 # Filtering
 confidence_threshold: 0.70

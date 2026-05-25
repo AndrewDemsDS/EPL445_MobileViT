@@ -142,25 +142,38 @@ def _classify_patches_batch(
     device: torch.device,
     class_names: list[str],
     conf_threshold: float,
-    batch_size: int = 128,
+    batch_size: int = 32,
 ) -> list[dict]:
-    """Classify all window patches and return non-background detections."""
+    """Classify all window patches and return non-background detections.
+
+    `batch_size` defaults to 32 because the Radeon 780M iGPU shares VRAM
+    with the rest of the system; pushing 128 sliding-window crops through
+    MobileViT-S alongside the FastAPI singletons reliably triggers an
+    HSA GPU hang (SIGABRT 134) on gfx1103. The dashboard overrides this
+    via cfg["classifier_batch_size"].
+    """
     detections: list[dict] = []
 
     for i in range(0, len(windows), batch_size):
         batch_windows = windows[i:i + batch_size]
         tensors = []
+        valid_windows: list[tuple[int, int, int, int]] = []
         for (x, y, w, h) in batch_windows:
             crop = frame_rgb[y:y + h, x:x + w]
+            if crop.size == 0 or crop.shape[0] < 2 or crop.shape[1] < 2:
+                continue
             pil_crop = Image.fromarray(crop)
             tensors.append(transform(pil_crop))
+            valid_windows.append((x, y, w, h))
 
+        if not tensors:
+            continue
         batch_tensor = torch.stack(tensors).to(device)
         logits = model(batch_tensor)
         probs = torch.softmax(logits, dim=1)
         confs, idxs = probs.max(dim=1)
 
-        for j, (x, y, w, h) in enumerate(batch_windows):
+        for j, (x, y, w, h) in enumerate(valid_windows):
             cls_idx = idxs[j].item()
             conf = confs[j].item()
             cls_name = class_names[cls_idx]
@@ -232,6 +245,7 @@ def run_video_inference(cfg: dict, preloaded: dict | None = None) -> None:
     stride_ratio = cfg.get("stride_ratio", 0.5)
     conf_threshold = cfg.get("confidence_threshold", 0.5)
     iou_threshold = cfg.get("nms_iou_threshold", 0.3)
+    classifier_batch_size = int(cfg.get("classifier_batch_size", 32))
 
     # Detection backend: "sliding" (multi-scale window) or "yolo" (YOLOv8n)
     detector = cfg.get("detector", "sliding").lower()
@@ -314,6 +328,7 @@ def run_video_inference(cfg: dict, preloaded: dict | None = None) -> None:
             detections = _classify_patches_batch(
                 proc_rgb, windows, model, transform, device,
                 class_names, conf_threshold,
+                batch_size=classifier_batch_size,
             )
 
             # NMS only matters for sliding window (YOLO already applied its own).
